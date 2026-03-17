@@ -137,13 +137,16 @@ patch(Order.prototype, {
             }
 
             // USAR PRECIO DEL ABONO
-
-            options.price = parseFloat(resultado.precio);
+            const precio_backend = parseFloat(resultado.precio);
+            options.price = precio_backend;
 
             await super.add_product(product, options);
 
             const line = this.get_selected_orderline();
             line.numero_rma = resultado.rma;
+
+            // 🔒 GUARDAR PRECIO ORIGINAL (CLAVE)
+            line.precio_original_rma = precio_backend;
 
             return;
         }
@@ -159,6 +162,29 @@ patch(Order.prototype, {
 
 patch(Orderline.prototype, {
 
+    // 🔒 BLOQUEAR CAMBIO DE PRECIO EN RMA
+    set_unit_price(price) {
+
+        if (this.numero_rma) {
+
+            const precio_original = this.precio_original_rma;
+
+            if (precio_original !== undefined && price !== precio_original) {
+
+                const popup = this.env.services.popup;
+
+                popup.add(ErrorPopup, {
+                    title: "Acción no permitida",
+                    body: "No se puede modificar el precio de un producto RMA.",
+                });
+
+                return super.set_unit_price(precio_original);
+            }
+        }
+
+        return super.set_unit_price(...arguments);
+    },
+
     export_as_JSON() {
 
         const json = super.export_as_JSON(...arguments);
@@ -166,6 +192,9 @@ patch(Orderline.prototype, {
         json.gramos = this.gramos || "";
         json.descripcion_personalizada = this.descripcion_personalizada || "";
         json.numero_rma = this.numero_rma || "";
+
+        // 🔒 guardar precio original
+        json.precio_original_rma = this.precio_original_rma || 0;
 
         return json;
     },
@@ -177,6 +206,9 @@ patch(Orderline.prototype, {
         this.gramos = json.gramos || "";
         this.descripcion_personalizada = json.descripcion_personalizada || "";
         this.numero_rma = json.numero_rma || "";
+
+        // 🔒 recuperar precio original
+        this.precio_original_rma = json.precio_original_rma || 0;
     },
 
     export_for_printing() {
