@@ -191,15 +191,35 @@
 
                         <group string="Datos Financieros" col="2">
 
-                            <field name="precio_unitario"/>
-                            <field name="extra"/>
+                            <!-- PRECIO NORMAL -->
+                            <field name="precio_unitario"
+                                invisible="tipo_cliente in ['cliente mayorista','cliente preferente']"/>
 
+                            <!-- HECHURA SOLO CLIENTES ESPECIALES -->
+                            <field name="hechura"
+                                invisible="tipo_cliente not in ['cliente mayorista','cliente preferente']"/>
+
+                            <!-- EXTRAS -->
+                            <field name="extra"/>
                             <field name="extra2"/>
                             <field name="extra3"/>
 
+                            <!-- 🔥 DESCRIPCIONES SOLO CLIENTES ESPECIALES -->
+                            <field name="descripcion_extra_1"
+                                placeholder="Descripción 1"
+                                invisible="tipo_cliente not in ['cliente mayorista','cliente preferente']"/>
+
+                            <field name="descripcion_extra_2"
+                                placeholder="Descripción 2"
+                                invisible="tipo_cliente not in ['cliente mayorista','cliente preferente']"/>
+
+                            <field name="descripcion_extra_3"
+                                placeholder="Descripción 3"
+                                invisible="tipo_cliente not in ['cliente mayorista','cliente preferente']"/>
+
+                            <!-- TOTALES -->
                             <field name="subtotal" readonly="1"/>
                             <field name="abono"/>
-
                             <field name="saldo" readonly="1"/>
 
                         </group>
