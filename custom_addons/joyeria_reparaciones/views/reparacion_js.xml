@@ -1,5 +1,9 @@
 <odoo>
 
+    <!-- ======================================
+                FORMULARIO REPARACION
+    ====================================== -->
+
     <record id="view_joyeria_reparacion_form" model="ir.ui.view">
         <field name="name">joyeria.reparacion.form</field>
         <field name="model">joyeria.reparacion</field>
@@ -13,6 +17,7 @@
                     <group col="2">
 
                         <!-- INFORMACIÓN GENERAL -->
+
                         <group string="Información General" col="2">
 
                             <field name="name" readonly="1"/>
@@ -35,27 +40,25 @@
 
 
                         <!-- PRODUCTO Y SERVICIO -->
+
                         <group string="Producto y Servicio" col="2">
 
                             <field name="servicio"/>
 
                             <field name="tipo_joya"
-                                   invisible="servicio != 'reparacion'"/>
+                                   visibility_condition="servicio == 'reparacion'"/>
 
                             <field name="modelo"/>
                             <field name="cantidad"/>
 
-                            <!-- 🔥 FIX LABEL -->
-                            <label for="metal"/>
                             <field name="metal"/>
-
                             <field name="peso"/>
 
                             <field name="n_cm_reparacion"
-                                   invisible="servicio != 'reparacion'"/>
+                                   visibility_condition="servicio == 'reparacion'"/>
 
                             <field name="n_cm_fabricacion"
-                                   invisible="servicio != 'fabricacion'"/>
+                                   visibility_condition="servicio == 'fabricacion'"/>
 
                             <field name="peso_valor"/>
 
@@ -65,15 +68,15 @@
 
 
                         <!-- SALIDA DEL TALLER -->
+
                         <group string="Datos de salida del taller"
                                groups="base.group_system"
                                col="2">
-
-                            <!-- 🔥 FIX LABEL -->
                             <label for="metal_utilizado"/>
                             <field name="metal_utilizado"/>
 
                             <!-- PLATA -->
+
                             <group string="Configuración Plata"
                                    invisible="metal_utilizado != 'plata'"
                                    col="2">
@@ -88,7 +91,9 @@
 
                             </group>
 
+
                             <!-- ORO AMARILLO -->
+
                             <group string="Configuración Oro Amarillo"
                                    invisible="metal_utilizado != 'oro 18k amarillo'"
                                    col="2">
@@ -103,7 +108,9 @@
 
                             </group>
 
+
                             <!-- ORO ROSADO -->
+
                             <group string="Configuración Oro Rosado"
                                    invisible="metal_utilizado != 'oro 18k rosado'"
                                    col="2">
@@ -118,7 +125,9 @@
 
                             </group>
 
+
                             <!-- OTROS METALES -->
+
                             <group string="Configuración Otros Metales"
                                    invisible="metal_utilizado in ['plata','oro 18k amarillo','oro 18k rosado']"
                                    col="2">
@@ -130,6 +139,7 @@
                                 <field name="otros_total" readonly="1"/>
 
                             </group>
+
 
                             <separator string="Cálculos Internos"/>
                             
@@ -152,10 +162,11 @@
                                 <field name="fecha_firma" readonly="1"/>
 
                             </group>
-                        </group>
+                            </group>
 
 
                         <!-- RECEPCIÓN Y ENTREGA -->
+
                         <group string="Recepción y Entrega" col="2">
 
                             <field name="vendedora_id"
@@ -177,32 +188,34 @@
 
 
                         <!-- FINANZAS -->
+
                         <group string="Datos Financieros" col="2">
 
+                            <!-- PRECIO NORMAL -->
                             <field name="precio_unitario"
                                 invisible="tipo_cliente in ['cliente mayorista','cliente preferente']"/>
 
+                            <!-- HECHURA SOLO CLIENTES ESPECIALES -->
                             <field name="hechura2"
                                 invisible="tipo_cliente not in ['cliente mayorista','cliente preferente']"/>
 
+                            <!-- EXTRAS -->
                             <field name="extra"/>
-
+                            <!-- 🔥 DESCRIPCIONES SOLO CLIENTES ESPECIALES -->
                             <field name="descripcion_extra_1"
                                 placeholder="Descripción 1"
                                 invisible="tipo_cliente not in ['cliente mayorista','cliente preferente']"/>
-
                             <field name="extra2"/>
-
                             <field name="descripcion_extra_2"
                                 placeholder="Descripción 2"
                                 invisible="tipo_cliente not in ['cliente mayorista','cliente preferente']"/>
-
                             <field name="extra3"/>
                             
                             <field name="descripcion_extra_3"
                                 placeholder="Descripción 3"
                                 invisible="tipo_cliente not in ['cliente mayorista','cliente preferente']"/>
 
+                            <!-- TOTALES -->
                             <field name="subtotal" readonly="1"/>
                             <field name="abono"/>
                             <field name="saldo" readonly="1"/>
@@ -213,32 +226,47 @@
 
 
                     <!-- NOTAS -->
+
                     <group string="Notas y Comentarios">
+
                         <field name="notas"/>
                         <field name="comentarios"/>
+
                     </group>
 
 
                     <!-- OPERACIONES -->
+
                     <notebook>
+
                         <page string="Operaciones">
+
                             <field name="lineas_operacion_ids">
+
                                 <tree editable="bottom">
+
                                     <field name="producto_id"/>
                                     <field name="descripcion"/>
                                     <field name="cantidad"/>
                                     <field name="unidad_medida"/>
                                     <field name="precio_unitario"/>
+
                                 </tree>
+
                             </field>
+
                         </page>
+
                     </notebook>
 
 
                     <!-- CHATTER -->
+
                     <div class="oe_chatter">
+
                         <field name="message_follower_ids" widget="mail_followers"/>
                         <field name="message_ids" widget="mail_thread"/>
+
                     </div>
 
                 </sheet>
@@ -247,6 +275,8 @@
 
         </field>
     </record>
+
+
 
     <!-- ======================================
                     TREE VIEW
