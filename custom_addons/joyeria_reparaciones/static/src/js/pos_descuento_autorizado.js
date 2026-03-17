@@ -31,7 +31,7 @@ patch(PaymentScreen.prototype, {
                 alert(
                     "No se puede vender el producto '" +
                     line.product.display_name +
-                    "' por menos del 50% de su precio original."
+                    "' PRECIO ERRONEO."
                 );
 
                 return;

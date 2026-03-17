@@ -17,7 +17,14 @@ class PosDiscount(models.Model):
     porcentaje = fields.Selection([
         ('5', '5%'),
         ('10', '10%'),
-        ('15', '15%')
+        ('15', '15%'),
+        ('20', '20%'),
+        ('25', '25%'),
+        ('30', '30%'),
+        ('35', '35%'),
+        ('40', '40%'),
+        ('45', '45%'),
+        ('50', '50%')
     ], string="Porcentaje")
 
     monto = fields.Float("Monto")
