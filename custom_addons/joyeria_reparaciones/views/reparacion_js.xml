@@ -210,6 +210,7 @@
                                 placeholder="Descripción 2"
                                 invisible="tipo_cliente not in ['cliente mayorista','cliente preferente']"/>
                             <field name="extra3"/>
+                            
                             <field name="descripcion_extra_3"
                                 placeholder="Descripción 3"
                                 invisible="tipo_cliente not in ['cliente mayorista','cliente preferente']"/>
