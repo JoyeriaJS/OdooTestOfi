@@ -514,10 +514,23 @@ class Reparacion(models.Model):
             if not self.env.user.has_group('joyeria_reparaciones.grupo_gestion_estado_reparacion'):
                 rec.estado = rec.estado  # No cambia el valor, pero evita la edición
 
-    @api.depends('cantidad', 'precio_unitario', 'extra', 'extra2', 'extra3', 'hechura2')
+    @api.depends('cantidad', 'precio_unitario', 'extra', 'extra2', 'extra3', 'hechura2', 'tipo_cliente')
     def _compute_subtotal(self):
         for rec in self:
-            rec.subtotal = rec.cantidad * rec.precio_unitario + rec.extra + rec.extra2 + rec.extra3 + rec.hechura2
+
+            # Determinar precio base según tipo de cliente
+            if rec.tipo_cliente in ['cliente mayorista', 'cliente preferente']:
+                precio_base = rec.hechura2 or 0.0
+            else:
+                precio_base = rec.precio_unitario or 0.0
+
+            # Calcular subtotal correctamente
+            rec.subtotal = (
+                (rec.cantidad or 0.0) * precio_base
+                + (rec.extra or 0.0)
+                + (rec.extra2 or 0.0)
+                + (rec.extra3 or 0.0)
+            )
 
     @api.depends('subtotal', 'abono')
     def _compute_saldo(self):
