@@ -204,6 +204,7 @@ class Reparacion(models.Model):
 
     cobro_interno = fields.Float("Cobro interno")
     hechura = fields.Float("Hechura")
+    hechura2 = fields.Float("Hechura")
     cobros_extras = fields.Float("Cobros extras")
     total_salida_taller = fields.Float("Total salida del taller", compute="_compute_total_salida", store=True)
     peso_total = fields.Float("Peso total", compute="_compute_peso_total", store=True)
@@ -458,6 +459,7 @@ class Reparacion(models.Model):
             self.cobro_interno = 0.0
             self.hechura = 0.0
             self.cobros_extras = 0.0
+            self.hechura2 = 0.0
 
     
     #@api.model
@@ -512,10 +514,10 @@ class Reparacion(models.Model):
             if not self.env.user.has_group('joyeria_reparaciones.grupo_gestion_estado_reparacion'):
                 rec.estado = rec.estado  # No cambia el valor, pero evita la edición
 
-    @api.depends('cantidad', 'precio_unitario', 'extra', 'extra2', 'extra3')
+    @api.depends('cantidad', 'precio_unitario', 'extra', 'extra2', 'extra3', 'hechura2')
     def _compute_subtotal(self):
         for rec in self:
-            rec.subtotal = rec.cantidad * rec.precio_unitario + rec.extra + rec.extra2 + rec.extra3
+            rec.subtotal = rec.cantidad * rec.precio_unitario + rec.extra + rec.extra2 + rec.extra3 + rec.hechura2
 
     @api.depends('subtotal', 'abono')
     def _compute_saldo(self):
@@ -606,7 +608,7 @@ class Reparacion(models.Model):
             precio = vals.get("precio_unitario", 0) or 0
 
             if precio > 0:
-                vals["hechura"] = precio
+                vals["hechura2"] = precio
                 vals["precio_unitario"] = 0
 
         # ============================================================
@@ -816,7 +818,7 @@ class Reparacion(models.Model):
                 precio = vals.get("precio_unitario", rec.precio_unitario) or 0
 
                 if precio > 0:
-                    vals["hechura"] = precio
+                    vals["hechura2"] = precio
                     vals["precio_unitario"] = 0
 
         # ============================================================
