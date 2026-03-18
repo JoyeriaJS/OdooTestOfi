@@ -1,19 +1,18 @@
 <odoo>
-    <templates xml:space="preserve">
+    <templates id="template" xml:space="preserve">
 
-        <!-- 🔥 NOMBRE OBLIGATORIO -->
         <t t-name="joyeria_reparaciones.PosRMALine"
            t-inherit="point_of_sale.Orderline"
            t-inherit-mode="extension">
 
-            <xpath expr="//div[contains(@class, 'product-name')]" position="after">
+            <xpath expr="//div[contains(@class, 'info')]" position="inside">
 
                 <t t-if="props.line.numero_rma">
 
-                    <div style="font-size:12px; color:#555; margin-top:4px;">
-                        <div>Subtotal: $<t t-esc="props.line.subtotal_rma"/></div>
-                        <div>Abono: $<t t-esc="props.line.abono_rma"/></div>
-                        <div><b>Saldo: $<t t-esc="props.line.saldo_rma"/></b></div>
+                    <div class="rma-extra" style="font-size:12px; margin-top:4px;">
+                        <div>Subtotal: <t t-out="props.line.subtotal_rma"/></div>
+                        <div>Abono: <t t-out="props.line.abono_rma"/></div>
+                        <div><b>Saldo: <t t-out="props.line.saldo_rma"/></b></div>
                     </div>
 
                 </t>
