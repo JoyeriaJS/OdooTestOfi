@@ -1,10 +1,11 @@
 <odoo>
-    <templates id="template" xml:space="preserve">
+    <templates xml:space="preserve">
 
-        <!-- EXTENDER LINEA DEL POS -->
-        <t t-inherit="point_of_sale.Orderline" t-inherit-mode="extension">
+        <!-- 🔥 NOMBRE OBLIGATORIO -->
+        <t t-name="joyeria_reparaciones.PosRMALine"
+           t-inherit="point_of_sale.Orderline"
+           t-inherit-mode="extension">
 
-            <!-- Debajo del nombre del producto -->
             <xpath expr="//div[contains(@class, 'product-name')]" position="after">
 
                 <t t-if="props.line.numero_rma">
