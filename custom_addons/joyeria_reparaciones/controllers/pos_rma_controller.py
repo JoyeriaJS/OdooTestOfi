@@ -35,9 +35,10 @@ class PosRMAController(http.Controller):
             return {
                 "error": f"El RMA {numero_rma} no tiene valor de abono"
             }
-
         return {
             "success": True,
-            "precio": reparacion.abono,
-            "rma": reparacion.name
+            "rma": reparacion.name,
+            "subtotal": reparacion.subtotal or 0,
+            "abono": reparacion.abono or 0,
+            "saldo": reparacion.saldo or (reparacion.subtotal - reparacion.abono)
         }
