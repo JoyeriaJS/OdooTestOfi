@@ -17,7 +17,7 @@
         'static/src/reparacion_form.js',
         'report/reporte_reparaciones_responsable.xml',
         #'views/vendedora_qr_views.xml',
-         'static/src/xml/pos_rma_line.xml',
+         #'static/src/xml/pos_rma_line.xml',
         'views/vendedora_views.xml',
         'views/trabajadores_views.xml',
         'report/reporte_reparaciones_responsable.xml',
@@ -61,6 +61,7 @@
             'joyeria_reparaciones/static/src/js/pos_descuento_autorizado.js',
             #'joyeria_reparaciones/static/src/xml/qr_vendedora.xml',
             'joyeria_reparaciones/static/src/xml/receipt_override.xml',
+            'joyeria_reparaciones/static/src/xml/pos_rma_line.xml',
             
         ],
     },
