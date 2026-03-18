@@ -88,27 +88,23 @@ patch(Order.prototype, {
             let numeroRMA = rmaInput.payload.trim();
 
             // ===================================
-            // SOPORTE PARA QR DE ODOO (URL)
+            // SOPORTE PARA QR (URL ODOO)
             // ===================================
 
             if (numeroRMA.includes("http")) {
-
                 try {
-
                     const url = new URL(numeroRMA);
                     const match = url.hash.match(/id=(\d+)/);
-
                     if (match) {
                         numeroRMA = match[1];
                     }
-
                 } catch (e) {
-                    console.warn("QR no es URL válida");
+                    console.warn("QR no válido");
                 }
             }
 
             // ===================================
-            // NORMALIZAR FORMATO RMA
+            // NORMALIZAR
             // ===================================
 
             numeroRMA = numeroRMA
@@ -136,17 +132,28 @@ patch(Order.prototype, {
                 return;
             }
 
-            // USAR PRECIO DEL ABONO
-            const precio_backend = parseFloat(resultado.precio);
+            // 🔥 USAR SALDO (NO ABONO)
+            const precio_backend = parseFloat(resultado.saldo || 0);
+
+            if (!precio_backend || precio_backend <= 0) {
+                await popup.add(ErrorPopup, {
+                    title: "Error",
+                    body: "El RMA no tiene saldo pendiente.",
+                });
+                return;
+            }
+
             options.price = precio_backend;
 
             await super.add_product(product, options);
 
             const line = this.get_selected_orderline();
-            line.numero_rma = resultado.rma;
 
-            // 🔒 GUARDAR PRECIO ORIGINAL (CLAVE)
+            line.numero_rma = resultado.rma;
             line.precio_original_rma = precio_backend;
+            line.subtotal_rma = resultado.subtotal;
+            line.abono_rma = resultado.abono;
+            line.saldo_rma = resultado.saldo;
 
             return;
         }
@@ -193,8 +200,10 @@ patch(Orderline.prototype, {
         json.descripcion_personalizada = this.descripcion_personalizada || "";
         json.numero_rma = this.numero_rma || "";
 
-        // 🔒 guardar precio original
         json.precio_original_rma = this.precio_original_rma || 0;
+        json.subtotal_rma = this.subtotal_rma || 0;
+        json.abono_rma = this.abono_rma || 0;
+        json.saldo_rma = this.saldo_rma || 0;
 
         return json;
     },
@@ -207,8 +216,10 @@ patch(Orderline.prototype, {
         this.descripcion_personalizada = json.descripcion_personalizada || "";
         this.numero_rma = json.numero_rma || "";
 
-        // 🔒 recuperar precio original
         this.precio_original_rma = json.precio_original_rma || 0;
+        this.subtotal_rma = json.subtotal_rma || 0;
+        this.abono_rma = json.abono_rma || 0;
+        this.saldo_rma = json.saldo_rma || 0;
     },
 
     export_for_printing() {
@@ -218,6 +229,10 @@ patch(Orderline.prototype, {
         line.gramos = this.gramos || "";
         line.descripcion_personalizada = this.descripcion_personalizada || "";
         line.numero_rma = this.numero_rma || "";
+
+        line.subtotal_rma = this.subtotal_rma || 0;
+        line.abono_rma = this.abono_rma || 0;
+        line.saldo_rma = this.saldo_rma || 0;
 
         return line;
     },
