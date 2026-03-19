@@ -157,7 +157,7 @@ patch(Order.prototype, {
             line.saldo_rma = resultado.saldo;
 
             // 🔥 FORZAR REACTIVIDAD
-            line.trigger('change');
+            this.select_orderline(line);
             
 
             return;
