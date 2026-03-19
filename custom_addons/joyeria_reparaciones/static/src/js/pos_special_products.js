@@ -150,13 +150,15 @@ patch(Order.prototype, {
             const line = this.get_selected_orderline();
 
             // ✅ FIX REACTIVIDAD OWL (CLAVE)
-            line.set({
-                numero_rma: resultado.rma,
-                precio_original_rma: precio_backend,
-                subtotal_rma: resultado.subtotal,
-                abono_rma: resultado.abono,
-                saldo_rma: resultado.saldo,
-            });
+            line.numero_rma = resultado.rma;
+            line.precio_original_rma = precio_backend;
+            line.subtotal_rma = resultado.subtotal;
+            line.abono_rma = resultado.abono;
+            line.saldo_rma = resultado.saldo;
+
+            // 🔥 FORZAR REACTIVIDAD
+            line.trigger('change');
+            
 
             return;
         }
