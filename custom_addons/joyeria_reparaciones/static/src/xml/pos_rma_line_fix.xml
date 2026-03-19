@@ -2,7 +2,6 @@
     <templates id="template" xml:space="preserve">
 
         <t t-name="joyeria_reparaciones.PosRMALine"
-           t-inherit="point_of_sale.Orderline"
            t-inherit-mode="extension">
 
             <!-- 🔥 UBICACIÓN CORRECTA EN ODOO 17 -->
