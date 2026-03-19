@@ -56,12 +56,13 @@
     'depends': ['point_of_sale'],
     'assets': {
         'point_of_sale._assets_pos': [
+            'joyeria_reparaciones/static/src/xml/pos_rma_line_fix.xml',
             'joyeria_reparaciones/static/src/js/qr_vendedora.js',
             'joyeria_reparaciones/static/src/js/pos_special_products.js',
             'joyeria_reparaciones/static/src/js/pos_descuento_autorizado.js',
             #'joyeria_reparaciones/static/src/xml/qr_vendedora.xml',
             'joyeria_reparaciones/static/src/xml/receipt_override.xml',
-            #'joyeria_reparaciones/static/src/xml/pos_rma_line.xml',
+
             
         ],
     },
