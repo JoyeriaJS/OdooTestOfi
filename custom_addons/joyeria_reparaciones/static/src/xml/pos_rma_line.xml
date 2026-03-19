@@ -5,27 +5,27 @@
            t-inherit="point_of_sale.Orderline"
            t-inherit-mode="extension">
 
-            <!-- Insertar dentro del bloque principal del line -->
             <xpath expr="//div[hasclass('info-list')]" position="inside">
 
-                <t t-if="props.line.numero_rma">
+                <!-- VALIDACIÓN SEGURA -->
+                <t t-if="props.line and props.line.numero_rma">
 
                     <div style="font-size:12px; opacity:0.7; margin-top:4px;">
 
                         <div>
                             Subtotal:
-                            <t t-out="props.line.subtotal_rma"/>
+                            <t t-out="props.line.subtotal_rma || 0"/>
                         </div>
 
                         <div>
                             Abono:
-                            <t t-out="props.line.abono_rma"/>
+                            <t t-out="props.line.abono_rma || 0"/>
                         </div>
 
                         <div>
                             <b>
                                 Saldo:
-                                <t t-out="props.line.saldo_rma"/>
+                                <t t-out="props.line.saldo_rma || 0"/>
                             </b>
                         </div>
 
