@@ -5,21 +5,21 @@
        t-inherit="point_of_sale.OrderlineItem"
        t-inherit-mode="extension">
 
-        <!-- 👇 ESTE SI EXISTE EN ODOO 17 -->
-        <xpath expr="//div[contains(@class, 'product-name')]" position="after">
+        <!-- 👇 usamos el contenedor principal real -->
+        <xpath expr="//div[contains(@class, 'orderline')]" position="inside">
 
             <t t-if="props.line.numero_rma">
 
-                <div style="font-size:12px; color:#666; margin-left:10px;">
+                <div style="font-size:12px; color:#666; margin-left:15px; margin-top:4px;">
 
                     <div>
                         Subtotal: 
-                        <t t-out="props.line.subtotal_rma or 0"/>
+                        <t t-out="props.line.subtotal_rma || 0"/>
                     </div>
 
                     <div>
                         Abono: 
-                        <t t-out="props.line.abono_rma or 0"/>
+                        <t t-out="props.line.abono_rma || 0"/>
                     </div>
 
                 </div>
