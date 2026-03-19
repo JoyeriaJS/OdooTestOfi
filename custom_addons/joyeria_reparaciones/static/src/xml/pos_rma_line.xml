@@ -2,10 +2,10 @@
 <templates xml:space="preserve">
 
     <t t-name="joyeria_reparaciones.PosRMALine"
-       t-inherit="point_of_sale.Orderline"
+       t-inherit="point_of_sale.OrderlineItem"
        t-inherit-mode="extension">
 
-        <!-- 👇 ESTE ES EL BUENO -->
+        <!-- 👇 ESTE SI EXISTE EN ODOO 17 -->
         <xpath expr="//div[contains(@class, 'product-name')]" position="after">
 
             <t t-if="props.line.numero_rma">
