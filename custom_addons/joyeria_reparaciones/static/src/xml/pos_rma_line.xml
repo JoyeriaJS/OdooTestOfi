@@ -6,7 +6,7 @@
 
             <xpath expr="//div[contains(@class, 'product-name')]" position="after">
 
-                <t t-if="props.line && props.line.numero_rma">
+                <t t-if="props.line.numero_rma">
 
                     <div style="font-size:12px; opacity:0.7; margin-left:10px;">
 
