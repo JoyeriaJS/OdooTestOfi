@@ -155,10 +155,7 @@ patch(Order.prototype, {
             line.subtotal_rma = resultado.subtotal;
             line.abono_rma = resultado.abono;
             line.saldo_rma = resultado.saldo;
-
-            // 🔥 FORZAR REACTIVIDAD
-            this.select_orderline(line);
-            
+ 
 
             return;
         }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="joyeria_reparaciones.OrderlineRMA"
+       t-inherit="point_of_sale.Orderline"
+       t-inherit-mode="extension">
+
+        <xpath expr="//div[contains(@class, 'product-name')]" position="after">
+
+            <t t-if="props.line.numero_rma">
+
+                <div class="rma-info" style="font-size:12px; color:#555;">
+                    <div><strong>RMA:</strong> <t t-esc="props.line.numero_rma"/></div>
+                    <div><strong>Subtotal:</strong> $<t t-esc="props.line.subtotal_rma"/></div>
+                    <div><strong>Abono:</strong> $<t t-esc="props.line.abono_rma"/></div>
+                    <div><strong>Saldo:</strong> $<t t-esc="props.line.saldo_rma"/></div>
+                </div>
+
+            </t>
+
+        </xpath>
+
+    </t>
+
+</templates>
