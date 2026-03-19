@@ -1,31 +1,30 @@
 <odoo>
-    <templates id="template" xml:space="preserve">
+    <templates xml:space="preserve">
 
         <t t-name="joyeria_reparaciones.PosRMALine"
            t-inherit="point_of_sale.Orderline"
            t-inherit-mode="extension">
 
-            <xpath expr="//div[hasclass('info-list')]" position="inside">
+            <xpath expr="//div[contains(@class, 'product-name')]" position="after">
 
-                <!-- VALIDACIÓN SEGURA -->
-                <t t-if="props.line and props.line.numero_rma">
+                <t t-if="props.line.numero_rma">
 
-                    <div style="font-size:12px; opacity:0.7; margin-top:4px;">
+                    <div style="font-size:12px; opacity:0.7; margin-left:10px;">
 
                         <div>
                             Subtotal:
-                            <t t-out="props.line.subtotal_rma || 0"/>
+                            <t t-esc="props.line.subtotal_rma"/>
                         </div>
 
                         <div>
                             Abono:
-                            <t t-out="props.line.abono_rma || 0"/>
+                            <t t-esc="props.line.abono_rma"/>
                         </div>
 
                         <div>
                             <b>
                                 Saldo:
-                                <t t-out="props.line.saldo_rma || 0"/>
+                                <t t-esc="props.line.saldo_rma"/>
                             </b>
                         </div>
 
