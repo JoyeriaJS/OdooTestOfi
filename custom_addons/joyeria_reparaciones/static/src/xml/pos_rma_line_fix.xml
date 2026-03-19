@@ -1,39 +1,41 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<templates xml:space="preserve">
+<odoo>
+    <templates id="template" xml:space="preserve">
 
-    <t t-name="joyeria_reparaciones.PosRMALine"
-       t-inherit="point_of_sale.Orderline"
-       t-inherit-mode="extension">
+        <t t-name="joyeria_reparaciones.PosRMALine"
+           t-inherit="point_of_sale.Orderline"
+           t-inherit-mode="extension">
 
-        <xpath expr="//div[contains(@class, 'product-name')]" position="after">
+            <!-- 🔥 UBICACIÓN CORRECTA EN ODOO 17 -->
+            <xpath expr="//div[contains(@class, 'line')]" position="inside">
 
-            <t t-if="props.line.numero_rma">
+                <t t-if="props.line.numero_rma">
 
-                <div class="rma-info" style="font-size:12px; opacity:0.7; margin-left:10px;">
+                    <div style="font-size:12px; opacity:0.7; margin-left:10px;">
 
-                    <div>
-                        Subtotal:
-                        <t t-out="props.line.subtotal_rma"/>
+                        <div>
+                            Subtotal:
+                            <t t-out="props.line.subtotal_rma"/>
+                        </div>
+
+                        <div>
+                            Abono:
+                            <t t-out="props.line.abono_rma"/>
+                        </div>
+
+                        <div>
+                            <b>
+                                Saldo:
+                                <t t-out="props.line.saldo_rma"/>
+                            </b>
+                        </div>
+
                     </div>
 
-                    <div>
-                        Abono:
-                        <t t-out="props.line.abono_rma"/>
-                    </div>
+                </t>
 
-                    <div>
-                        <b>
-                            Saldo:
-                            <t t-out="props.line.saldo_rma"/>
-                        </b>
-                    </div>
+            </xpath>
 
-                </div>
+        </t>
 
-            </t>
-
-        </xpath>
-
-    </t>
-
-</templates>
+    </templates>
+</odoo>
