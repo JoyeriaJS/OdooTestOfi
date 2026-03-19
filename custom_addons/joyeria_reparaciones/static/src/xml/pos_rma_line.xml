@@ -1,33 +1,40 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<templates xml:space="preserve">
+<odoo>
+    <templates id="template" xml:space="preserve">
 
-    <t t-name="joyeria_reparaciones.PosRMALine"
-       t-inherit="point_of_sale.OrderlineItem"
-       t-inherit-mode="extension">
+        <t t-name="joyeria_reparaciones.PosRMALine"
+           t-inherit="point_of_sale.OrderlineItem"
+           t-inherit-mode="extension">
 
-        <!-- 👇 usamos el contenedor principal real -->
-        <xpath expr="//div[contains(@class, 'orderline')]" position="inside">
+            <!-- 🔥 lugar correcto en Odoo 17 -->
+            <xpath expr="//div[contains(@class, 'product-name')]" position="after">
 
-            <t t-if="props.line.numero_rma">
+                <t t-if="props.line.numero_rma">
 
-                <div style="font-size:12px; color:#666; margin-left:15px; margin-top:4px;">
+                    <div class="rma-detalle" style="font-size:12px; opacity:0.7; margin-top:4px;">
 
-                    <div>
-                        Subtotal: 
-                        <t t-out="props.line.subtotal_rma || 0"/>
+                        <div>
+                            Subtotal: 
+                            <t t-out="props.line.subtotal_rma"/>
+                        </div>
+
+                        <div>
+                            Abono: 
+                            <t t-out="props.line.abono_rma"/>
+                        </div>
+
+                        <div>
+                            <b>Saldo: 
+                                <t t-out="props.line.saldo_rma"/>
+                            </b>
+                        </div>
+
                     </div>
 
-                    <div>
-                        Abono: 
-                        <t t-out="props.line.abono_rma || 0"/>
-                    </div>
+                </t>
 
-                </div>
+            </xpath>
 
-            </t>
+        </t>
 
-        </xpath>
-
-    </t>
-
-</templates>
+    </templates>
+</odoo>
