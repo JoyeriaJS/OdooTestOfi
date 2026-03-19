@@ -14,7 +14,7 @@
         'report/report.xml',  # ← este es el que importa
         'report/report_qrcode_template.xml',
         'report/reporte_responsable_report.xml',
-        'static/src/reparacion_form.js',
+        #'static/src/reparacion_form.js',
         'report/reporte_reparaciones_responsable.xml',
         #'views/vendedora_qr_views.xml',
          #'static/src/xml/pos_rma_line.xml',
@@ -55,7 +55,7 @@
     "pre_init_hook": "migrate_direccion_entrega",
     'depends': ['point_of_sale'],
     'assets': {
-        'point_of_sale._assets_pos': [
+        'point_of_sale._assets': [
             'joyeria_reparaciones/static/src/js/qr_vendedora.js',
             'joyeria_reparaciones/static/src/js/pos_special_products.js',
             'joyeria_reparaciones/static/src/js/pos_descuento_autorizado.js',
