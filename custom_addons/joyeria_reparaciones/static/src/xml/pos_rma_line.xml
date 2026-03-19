@@ -2,15 +2,15 @@
     <templates id="template" xml:space="preserve">
 
         <t t-name="joyeria_reparaciones.PosRMALine"
-           t-inherit="point_of_sale.OrderlineItem"
+           t-inherit="point_of_sale.Orderline"
            t-inherit-mode="extension">
 
-            <!-- 🔥 lugar correcto en Odoo 17 -->
+            <!-- 🔥 ESTE ES EL BUENO -->
             <xpath expr="//div[contains(@class, 'product-name')]" position="after">
 
                 <t t-if="props.line.numero_rma">
 
-                    <div class="rma-detalle" style="font-size:12px; opacity:0.7; margin-top:4px;">
+                    <div style="font-size:12px; opacity:0.7; margin-left:10px;">
 
                         <div>
                             Subtotal: 
@@ -23,7 +23,8 @@
                         </div>
 
                         <div>
-                            <b>Saldo: 
+                            <b>
+                                Saldo: 
                                 <t t-out="props.line.saldo_rma"/>
                             </b>
                         </div>
