@@ -23,6 +23,17 @@ patch(PaymentScreen.prototype, {
 
         for (let line of lines) {
 
+            const esLineaAuxiliarRMA =
+                line.es_linea_rma_aux === true &&
+                (
+                    line.tipo_linea_rma === "abono" ||
+                    line.tipo_linea_rma === "subtotal"
+                );
+
+            if (esLineaAuxiliarRMA) {
+                continue;
+            }
+
             const precioOriginal = line.product.lst_price;
             const precioVenta = line.get_unit_price();
 
