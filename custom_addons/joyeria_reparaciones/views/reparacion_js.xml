@@ -77,7 +77,7 @@
 
                             <!-- PLATA -->
 
-                            <group string="Configuración Plata"
+                            <!--<group string="Configuración Plata"
                                    invisible="metal_utilizado != 'plata'"
                                    col="2">
 
@@ -90,6 +90,8 @@
                                 <field name="plata_total" readonly="1"/>
 
                             </group>
+                            -->
+                            
 
 
                             <!-- ORO AMARILLO -->
