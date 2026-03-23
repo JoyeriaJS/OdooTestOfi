@@ -10,6 +10,7 @@ patch(Order.prototype, {
     async add_product(product, options = {}) {
         const popup = this.env.services.popup;
         const rpc = this.env.services.rpc;
+        const pos = this.pos || this.env.pos;
 
         // ===================================
         // PRODUCTO NO INVENTARIADO
@@ -19,7 +20,7 @@ patch(Order.prototype, {
                 title: "Ingrese gramos",
             });
 
-            if (!gramos.confirmed || gramos.payload === null || gramos.payload === "") {
+            if (!gramos.confirmed || !gramos.payload) {
                 await popup.add(ErrorPopup, {
                     title: "Dato obligatorio",
                     body: "Debe ingresar los gramos.",
@@ -31,7 +32,7 @@ patch(Order.prototype, {
                 title: "Ingrese precio",
             });
 
-            if (!precio.confirmed || precio.payload === null || precio.payload === "") {
+            if (!precio.confirmed || !precio.payload) {
                 await popup.add(ErrorPopup, {
                     title: "Dato obligatorio",
                     body: "Debe ingresar el precio.",
@@ -43,7 +44,7 @@ patch(Order.prototype, {
                 title: "Ingrese descripción",
             });
 
-            if (!descripcion.confirmed || !descripcion.payload?.trim()) {
+            if (!descripcion.confirmed || !descripcion.payload) {
                 await popup.add(ErrorPopup, {
                     title: "Dato obligatorio",
                     body: "Debe ingresar la descripción.",
@@ -58,7 +59,7 @@ patch(Order.prototype, {
             const line = this.get_selected_orderline();
             if (line) {
                 line.gramos = gramos.payload;
-                line.descripcion_personalizada = descripcion.payload.trim();
+                line.descripcion_personalizada = descripcion.payload;
             }
 
             return;
@@ -73,7 +74,7 @@ patch(Order.prototype, {
                 placeholder: "Ej: RMA/01160, RMA-01160, 1160 o escanee QR",
             });
 
-            if (!rmaInput.confirmed || !rmaInput.payload?.trim()) {
+            if (!rmaInput.confirmed || !rmaInput.payload) {
                 await popup.add(ErrorPopup, {
                     title: "Dato obligatorio",
                     body: "Debe ingresar el número de RMA.",
@@ -94,7 +95,7 @@ patch(Order.prototype, {
                         numeroRMA = match[1];
                     }
                 } catch (e) {
-                    console.warn("QR no válido", e);
+                    console.warn("QR no válido");
                 }
             }
 
@@ -102,34 +103,18 @@ patch(Order.prototype, {
             // NORMALIZAR
             // ===================================
             numeroRMA = numeroRMA
-                .replace(/^RMA\//i, "")
-                .replace(/^RMA-/i, "")
+                .replace("RMA/", "")
+                .replace("RMA-", "")
+                .replace("rma/", "")
+                .replace("rma-", "")
                 .trim();
 
             // ===================================
             // CONSULTAR BACKEND
             // ===================================
-            let resultado;
-            try {
-                resultado = await rpc("/pos/buscar_rma", {
-                    numero_rma: numeroRMA,
-                });
-            } catch (error) {
-                await popup.add(ErrorPopup, {
-                    title: "Error de conexión",
-                    body: "No se pudo consultar el RMA en el servidor.",
-                });
-                console.error("Error RPC /pos/buscar_rma:", error);
-                return;
-            }
-
-            if (!resultado) {
-                await popup.add(ErrorPopup, {
-                    title: "Error",
-                    body: "No se recibió respuesta del servidor.",
-                });
-                return;
-            }
+            const resultado = await rpc("/pos/buscar_rma", {
+                numero_rma: numeroRMA,
+            });
 
             if (resultado.error) {
                 await popup.add(ErrorPopup, {
@@ -139,9 +124,11 @@ patch(Order.prototype, {
                 return;
             }
 
-            const precio_backend = parseFloat(resultado.saldo || 0);
+            const subtotal = parseFloat(resultado.subtotal || 0);
+            const abono = parseFloat(resultado.abono || 0);
+            const saldo = parseFloat(resultado.saldo || 0);
 
-            if (!precio_backend || precio_backend <= 0) {
+            if (saldo <= 0) {
                 await popup.add(ErrorPopup, {
                     title: "Error",
                     body: "El RMA no tiene saldo pendiente.",
@@ -149,17 +136,76 @@ patch(Order.prototype, {
                 return;
             }
 
-            options.price = precio_backend;
+            // ===================================
+            // BUSCAR PRODUCTOS AUXILIARES
+            // ===================================
+            const products = pos.db.get_product_by_category
+                ? pos.db.product_by_id
+                : pos.models?.["product.product"];
 
-            await super.add_product(product, options);
+            let productoSubtotal = null;
+            let productoAbono = null;
 
-            const line = this.get_selected_orderline();
-            if (line) {
-                line.numero_rma = resultado.rma || numeroRMA;
-                line.precio_original_rma = parseFloat(resultado.saldo || 0);
-                line.subtotal_rma = parseFloat(resultado.subtotal || 0);
-                line.abono_rma = parseFloat(resultado.abono || 0);
-                line.saldo_rma = parseFloat(resultado.saldo || 0);
+            const allProducts = Object.values(pos.db.product_by_id || {});
+            productoSubtotal = allProducts.find((p) => p.name === "Producto SUBTOTAL");
+            productoAbono = allProducts.find((p) => p.name === "Producto ABONO");
+
+            if (!productoSubtotal || !productoAbono) {
+                await popup.add(ErrorPopup, {
+                    title: "Error de configuración",
+                    body: 'Debes tener creados y cargados en POS los productos "Producto SUBTOTAL" y "Producto ABONO".',
+                });
+                return;
+            }
+
+            // ===================================
+            // AGREGAR LÍNEAS DEL RMA
+            // ===================================
+
+            // Línea subtotal
+            await super.add_product(productoSubtotal, {
+                price: subtotal,
+                quantity: 1,
+                merge: false,
+            });
+
+            const lineSubtotal = this.get_selected_orderline();
+            if (lineSubtotal) {
+                lineSubtotal.numero_rma = resultado.rma;
+                lineSubtotal.es_linea_rma_aux = true;
+                lineSubtotal.tipo_linea_rma = "subtotal";
+            }
+
+            // Línea abono (negativa para que el total final sea el saldo)
+            await super.add_product(productoAbono, {
+                price: -abono,
+                quantity: 1,
+                merge: false,
+            });
+
+            const lineAbono = this.get_selected_orderline();
+            if (lineAbono) {
+                lineAbono.numero_rma = resultado.rma;
+                lineAbono.es_linea_rma_aux = true;
+                lineAbono.tipo_linea_rma = "abono";
+            }
+
+            // Línea principal RMA en 0 para identificar la operación
+            await super.add_product(product, {
+                price: 0,
+                quantity: 1,
+                merge: false,
+            });
+
+            const lineRMA = this.get_selected_orderline();
+            if (lineRMA) {
+                lineRMA.numero_rma = resultado.rma;
+                lineRMA.precio_original_rma = saldo;
+                lineRMA.subtotal_rma = subtotal;
+                lineRMA.abono_rma = abono;
+                lineRMA.saldo_rma = saldo;
+                lineRMA.es_linea_rma_principal = true;
+                lineRMA.set_unit_price(0);
             }
 
             return;
@@ -171,19 +217,23 @@ patch(Order.prototype, {
 
 patch(Orderline.prototype, {
     set_unit_price(price) {
-        if (this.numero_rma) {
-            const precio_original = this.precio_original_rma;
-
-            if (precio_original !== undefined && price !== precio_original) {
+        if (this.es_linea_rma_principal) {
+            if (price !== 0) {
                 const popup = this.env.services.popup;
-
                 popup.add(ErrorPopup, {
                     title: "Acción no permitida",
-                    body: "No se puede modificar el precio de un producto RMA.",
+                    body: "No se puede modificar manualmente la línea principal del RMA.",
                 });
-
-                return super.set_unit_price(precio_original);
+                return super.set_unit_price(0);
             }
+        }
+
+        if (this.tipo_linea_rma === "subtotal") {
+            return super.set_unit_price(...arguments);
+        }
+
+        if (this.tipo_linea_rma === "abono") {
+            return super.set_unit_price(...arguments);
         }
 
         return super.set_unit_price(...arguments);
@@ -195,10 +245,15 @@ patch(Orderline.prototype, {
         json.gramos = this.gramos || "";
         json.descripcion_personalizada = this.descripcion_personalizada || "";
         json.numero_rma = this.numero_rma || "";
+
         json.precio_original_rma = this.precio_original_rma || 0;
         json.subtotal_rma = this.subtotal_rma || 0;
         json.abono_rma = this.abono_rma || 0;
         json.saldo_rma = this.saldo_rma || 0;
+
+        json.es_linea_rma_principal = this.es_linea_rma_principal || false;
+        json.es_linea_rma_aux = this.es_linea_rma_aux || false;
+        json.tipo_linea_rma = this.tipo_linea_rma || "";
 
         return json;
     },
@@ -209,10 +264,15 @@ patch(Orderline.prototype, {
         this.gramos = json.gramos || "";
         this.descripcion_personalizada = json.descripcion_personalizada || "";
         this.numero_rma = json.numero_rma || "";
+
         this.precio_original_rma = json.precio_original_rma || 0;
         this.subtotal_rma = json.subtotal_rma || 0;
         this.abono_rma = json.abono_rma || 0;
         this.saldo_rma = json.saldo_rma || 0;
+
+        this.es_linea_rma_principal = json.es_linea_rma_principal || false;
+        this.es_linea_rma_aux = json.es_linea_rma_aux || false;
+        this.tipo_linea_rma = json.tipo_linea_rma || "";
     },
 
     export_for_printing() {
@@ -221,9 +281,14 @@ patch(Orderline.prototype, {
         line.gramos = this.gramos || "";
         line.descripcion_personalizada = this.descripcion_personalizada || "";
         line.numero_rma = this.numero_rma || "";
+
         line.subtotal_rma = this.subtotal_rma || 0;
         line.abono_rma = this.abono_rma || 0;
         line.saldo_rma = this.saldo_rma || 0;
+
+        line.es_linea_rma_principal = this.es_linea_rma_principal || false;
+        line.es_linea_rma_aux = this.es_linea_rma_aux || false;
+        line.tipo_linea_rma = this.tipo_linea_rma || "";
 
         return line;
     },
