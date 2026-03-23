@@ -214,34 +214,34 @@ class Reparacion(models.Model):
     # ==============================
 
     # PLATA
-    plata_diseno = fields.Boolean(string="Diseño")
-    plata_casting = fields.Boolean(string="Casting")
-    plata_piedras = fields.Boolean(string="Piedras")
-    plata_cantidad_piedras = fields.Integer(string="Cantidad piedras")
-    plata_total = fields.Float(string="Total Plata", compute="_compute_total_plata", store=True)
+    #plata_diseno = fields.Boolean(string="Diseño")
+    #plata_casting = fields.Boolean(string="Casting")
+    #plata_piedras = fields.Boolean(string="Piedras")
+    #plata_cantidad_piedras = fields.Integer(string="Cantidad piedras")
+    #plata_total = fields.Float(string="Total Plata", compute="_compute_total_plata", store=True)
 
 
     # ORO AMARILLO
-    oro_amarillo_diseno = fields.Boolean(string="Diseño")
-    oro_amarillo_casting = fields.Boolean(string="Casting")
-    oro_amarillo_piedras = fields.Boolean(string="Piedras")
-    oro_amarillo_cantidad_piedras = fields.Integer(string="Cantidad piedras")
-    oro_amarillo_total = fields.Float(string="Total Oro Amarillo", compute="_compute_total_oro_amarillo", store=True)
+    #oro_amarillo_diseno = fields.Boolean(string="Diseño")
+    #oro_amarillo_casting = fields.Boolean(string="Casting")
+    #oro_amarillo_piedras = fields.Boolean(string="Piedras")
+    #oro_amarillo_cantidad_piedras = fields.Integer(string="Cantidad piedras")
+    #oro_amarillo_total = fields.Float(string="Total Oro Amarillo", compute="_compute_total_oro_amarillo", store=True)
 
 
     # ORO ROSADO
-    oro_rosado_diseno = fields.Boolean(string="Diseño")
-    oro_rosado_casting = fields.Boolean(string="Casting")
-    oro_rosado_piedras = fields.Boolean(string="Piedras")
-    oro_rosado_cantidad_piedras = fields.Integer(string="Cantidad piedras")
-    oro_rosado_total = fields.Float(string="Total Oro Rosado", compute="_compute_total_oro_rosado", store=True)
+    #oro_rosado_diseno = fields.Boolean(string="Diseño")
+    #oro_rosado_casting = fields.Boolean(string="Casting")
+    #oro_rosado_piedras = fields.Boolean(string="Piedras")
+    #oro_rosado_cantidad_piedras = fields.Integer(string="Cantidad piedras")
+    #oro_rosado_total = fields.Float(string="Total Oro Rosado", compute="_compute_total_oro_rosado", store=True)
 
 
     # OTROS METALES
-    otros_casting = fields.Boolean(string="Casting")
-    otros_piedras = fields.Boolean(string="Piedras")
-    otros_cantidad_piedras = fields.Integer(string="Cantidad piedras")
-    otros_total = fields.Float(string="Total Otros", compute="_compute_total_otros", store=True)
+    #otros_casting = fields.Boolean(string="Casting")
+    #otros_piedras = fields.Boolean(string="Piedras")
+    #otros_cantidad_piedras = fields.Integer(string="Cantidad piedras")
+    #otros_total = fields.Float(string="Total Otros", compute="_compute_total_otros", store=True)
 
 
     #firma_salida_id = fields.Many2one('joyeria.vendedora', string="Firma salida del taller", readonly=True)

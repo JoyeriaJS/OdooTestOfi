@@ -93,8 +93,9 @@
 
 
                             <!-- ORO AMARILLO -->
+                            <!-- -->
 
-                            <group string="Configuración Oro Amarillo"
+                            <!--<group string="Configuración Oro Amarillo"
                                    invisible="metal_utilizado != 'oro 18k amarillo'"
                                    col="2">
 
@@ -107,11 +108,12 @@
                                 <field name="oro_amarillo_total" readonly="1"/>
 
                             </group>
+                            -->
 
 
                             <!-- ORO ROSADO -->
 
-                            <group string="Configuración Oro Rosado"
+                            <!--<group string="Configuración Oro Rosado"
                                    invisible="metal_utilizado != 'oro 18k rosado'"
                                    col="2">
 
@@ -124,11 +126,12 @@
                                 <field name="oro_rosado_total" readonly="1"/>
 
                             </group>
+                            -->
 
 
                             <!-- OTROS METALES -->
 
-                            <group string="Configuración Otros Metales"
+                            <!--<group string="Configuración Otros Metales"
                                    invisible="metal_utilizado in ['plata','oro 18k amarillo','oro 18k rosado']"
                                    col="2">
 
@@ -139,6 +142,7 @@
                                 <field name="otros_total" readonly="1"/>
 
                             </group>
+                            -->
 
 
                             <separator string="Cálculos Internos"/>
