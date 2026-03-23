@@ -23,6 +23,11 @@ patch(PaymentScreen.prototype, {
 
         for (let line of lines) {
 
+            const esProductoRMA =
+                line.product &&
+                line.product.display_name &&
+                line.product.display_name.trim() === "Producto RMA";
+
             const esLineaAuxiliarRMA =
                 line.es_linea_rma_aux === true &&
                 (
@@ -30,11 +35,11 @@ patch(PaymentScreen.prototype, {
                     line.tipo_linea_rma === "subtotal"
                 );
 
-            if (esLineaAuxiliarRMA) {
+            if (esProductoRMA || esLineaAuxiliarRMA) {
                 continue;
             }
 
-            const precioOriginal = line.product.lst_price;
+            const precioOriginal = line.product.lst_price || 0;
             const precioVenta = line.get_unit_price();
 
             if (precioVenta < (precioOriginal * 0.5)) {
@@ -79,10 +84,6 @@ patch(PaymentScreen.prototype, {
 
                     const lines = order.get_orderlines();
 
-                    // ==============================
-                    // DESCUENTO POR PORCENTAJE
-                    // ==============================
-
                     if (descuento.tipo_descuento === "porcentaje") {
 
                         const porcentaje = parseFloat(descuento.porcentaje);
@@ -92,10 +93,6 @@ patch(PaymentScreen.prototype, {
                         });
 
                     }
-
-                    // ==============================
-                    // DESCUENTO MONTO FIJO
-                    // ==============================
 
                     if (descuento.tipo_descuento === "monto") {
 
