@@ -12,6 +12,20 @@ patch(Order.prototype, {
         const rpc = this.env.services.rpc;
         const pos = this.pos || this.env.pos;
 
+         // ===================================
+        // BLOQUEAR VENTA DIRECTA DE PRODUCTOS AUXILIARES RMA
+        // ===================================
+        if (
+            (product.name === "Producto SUBTOTAL" || product.name === "Producto ABONO") &&
+            !options.permitir_linea_rma_aux
+        ) {
+            await popup.add(ErrorPopup, {
+                title: "Acción no permitida",
+                body: `No se puede vender "${product.name}" por separado. Este producto solo puede agregarse desde un Producto RMA.`,
+            });
+            return;
+        }
+
         // ===================================
         // PRODUCTO NO INVENTARIADO
         // ===================================
