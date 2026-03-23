@@ -35,7 +35,9 @@ patch(PaymentScreen.prototype, {
                     line.tipo_linea_rma === "subtotal"
                 );
 
-            if (esProductoRMA || esLineaAuxiliarRMA) {
+            const esProductoGasto = line.es_producto_gasto === true;
+
+            if (esProductoRMA || esLineaAuxiliarRMA || esProductoGasto) {
                 continue;
             }
 

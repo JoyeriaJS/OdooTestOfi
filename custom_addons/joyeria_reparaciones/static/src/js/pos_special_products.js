@@ -66,6 +66,75 @@ patch(Order.prototype, {
         }
 
         // ===================================
+        // PRODUCTO GASTO
+        // ===================================
+        if (product.name === "Producto GASTO") {
+            const nombre = await popup.add(TextInputPopup, {
+                title: "Ingrese nombre",
+                placeholder: "Ej: Lápiz, Bolsa, Taxi",
+            });
+
+            if (!nombre.confirmed || !nombre.payload || !nombre.payload.trim()) {
+                await popup.add(ErrorPopup, {
+                    title: "Dato obligatorio",
+                    body: "Debe ingresar el nombre.",
+                });
+                return;
+            }
+
+            const descripcion = await popup.add(TextInputPopup, {
+                title: "Ingrese descripción",
+                placeholder: "Detalle del gasto",
+            });
+
+            if (!descripcion.confirmed || !descripcion.payload || !descripcion.payload.trim()) {
+                await popup.add(ErrorPopup, {
+                    title: "Dato obligatorio",
+                    body: "Debe ingresar la descripción.",
+                });
+                return;
+            }
+
+            const precio = await popup.add(NumberPopup, {
+                title: "Ingrese precio",
+            });
+
+            if (!precio.confirmed || !precio.payload) {
+                await popup.add(ErrorPopup, {
+                    title: "Dato obligatorio",
+                    body: "Debe ingresar el precio.",
+                });
+                return;
+            }
+
+            const precioNumerico = Math.abs(parseFloat(precio.payload || 0));
+
+            if (!precioNumerico || precioNumerico <= 0) {
+                await popup.add(ErrorPopup, {
+                    title: "Dato obligatorio",
+                    body: "Debe ingresar un precio válido.",
+                });
+                return;
+            }
+
+            options.price = -precioNumerico;
+            options.quantity = 1;
+            options.merge = false;
+
+            await super.add_product(product, options);
+
+            const line = this.get_selected_orderline();
+            if (line) {
+                line.es_producto_gasto = true;
+                line.precio_bloqueado = -precioNumerico;
+                line.gasto_nombre = nombre.payload.trim();
+                line.gasto_descripcion = descripcion.payload.trim();
+            }
+
+            return;
+        }
+
+        // ===================================
         // PRODUCTO RMA
         // ===================================
         if (product.name === "Producto RMA") {
@@ -254,6 +323,19 @@ patch(Orderline.prototype, {
             return super.set_unit_price(precioBloqueado);
         }
 
+        if (this.es_producto_gasto) {
+            const precioBloqueado = this.precio_bloqueado ?? this.get_unit_price();
+            if (price !== precioBloqueado) {
+                const popup = this.env.services.popup;
+                popup.add(ErrorPopup, {
+                    title: "Acción no permitida",
+                    body: "No se puede modificar el precio de Producto GASTO.",
+                });
+                return super.set_unit_price(precioBloqueado);
+            }
+            return super.set_unit_price(precioBloqueado);
+        }
+
         return super.set_unit_price(...arguments);
     },
 
@@ -274,6 +356,10 @@ patch(Orderline.prototype, {
         json.tipo_linea_rma = this.tipo_linea_rma || "";
         json.precio_bloqueado = this.precio_bloqueado || 0;
 
+        json.es_producto_gasto = this.es_producto_gasto || false;
+        json.gasto_nombre = this.gasto_nombre || "";
+        json.gasto_descripcion = this.gasto_descripcion || "";
+
         return json;
     },
 
@@ -293,6 +379,10 @@ patch(Orderline.prototype, {
         this.es_linea_rma_aux = json.es_linea_rma_aux || false;
         this.tipo_linea_rma = json.tipo_linea_rma || "";
         this.precio_bloqueado = json.precio_bloqueado || 0;
+
+        this.es_producto_gasto = json.es_producto_gasto || false;
+        this.gasto_nombre = json.gasto_nombre || "";
+        this.gasto_descripcion = json.gasto_descripcion || "";
     },
 
     export_for_printing() {
@@ -310,6 +400,10 @@ patch(Orderline.prototype, {
         line.es_linea_rma_aux = this.es_linea_rma_aux || false;
         line.tipo_linea_rma = this.tipo_linea_rma || "";
         line.precio_bloqueado = this.precio_bloqueado || 0;
+
+        line.es_producto_gasto = this.es_producto_gasto || false;
+        line.gasto_nombre = this.gasto_nombre || "";
+        line.gasto_descripcion = this.gasto_descripcion || "";
 
         return line;
     },
