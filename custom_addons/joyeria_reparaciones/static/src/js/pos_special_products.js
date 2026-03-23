@@ -139,10 +139,6 @@ patch(Order.prototype, {
             // ===================================
             // BUSCAR PRODUCTOS AUXILIARES
             // ===================================
-            const products = pos.db.get_product_by_category
-                ? pos.db.product_by_id
-                : pos.models?.["product.product"];
-
             let productoSubtotal = null;
             let productoAbono = null;
 
@@ -174,6 +170,7 @@ patch(Order.prototype, {
                 lineSubtotal.numero_rma = resultado.rma;
                 lineSubtotal.es_linea_rma_aux = true;
                 lineSubtotal.tipo_linea_rma = "subtotal";
+                lineSubtotal.precio_bloqueado = subtotal;
             }
 
             // Línea abono (negativa para que el total final sea el saldo)
@@ -188,6 +185,7 @@ patch(Order.prototype, {
                 lineAbono.numero_rma = resultado.rma;
                 lineAbono.es_linea_rma_aux = true;
                 lineAbono.tipo_linea_rma = "abono";
+                lineAbono.precio_bloqueado = -abono;
             }
 
             // Línea principal RMA en 0 para identificar la operación
@@ -205,6 +203,7 @@ patch(Order.prototype, {
                 lineRMA.abono_rma = abono;
                 lineRMA.saldo_rma = saldo;
                 lineRMA.es_linea_rma_principal = true;
+                lineRMA.precio_bloqueado = 0;
                 lineRMA.set_unit_price(0);
             }
 
@@ -226,14 +225,33 @@ patch(Orderline.prototype, {
                 });
                 return super.set_unit_price(0);
             }
+            return super.set_unit_price(0);
         }
 
         if (this.tipo_linea_rma === "subtotal") {
-            return super.set_unit_price(...arguments);
+            const precioBloqueado = this.precio_bloqueado ?? this.get_unit_price();
+            if (price !== precioBloqueado) {
+                const popup = this.env.services.popup;
+                popup.add(ErrorPopup, {
+                    title: "Acción no permitida",
+                    body: "No se puede modificar el precio de Producto SUBTOTAL.",
+                });
+                return super.set_unit_price(precioBloqueado);
+            }
+            return super.set_unit_price(precioBloqueado);
         }
 
         if (this.tipo_linea_rma === "abono") {
-            return super.set_unit_price(...arguments);
+            const precioBloqueado = this.precio_bloqueado ?? this.get_unit_price();
+            if (price !== precioBloqueado) {
+                const popup = this.env.services.popup;
+                popup.add(ErrorPopup, {
+                    title: "Acción no permitida",
+                    body: "No se puede modificar el precio de Producto ABONO.",
+                });
+                return super.set_unit_price(precioBloqueado);
+            }
+            return super.set_unit_price(precioBloqueado);
         }
 
         return super.set_unit_price(...arguments);
@@ -254,6 +272,7 @@ patch(Orderline.prototype, {
         json.es_linea_rma_principal = this.es_linea_rma_principal || false;
         json.es_linea_rma_aux = this.es_linea_rma_aux || false;
         json.tipo_linea_rma = this.tipo_linea_rma || "";
+        json.precio_bloqueado = this.precio_bloqueado || 0;
 
         return json;
     },
@@ -273,6 +292,7 @@ patch(Orderline.prototype, {
         this.es_linea_rma_principal = json.es_linea_rma_principal || false;
         this.es_linea_rma_aux = json.es_linea_rma_aux || false;
         this.tipo_linea_rma = json.tipo_linea_rma || "";
+        this.precio_bloqueado = json.precio_bloqueado || 0;
     },
 
     export_for_printing() {
@@ -289,6 +309,7 @@ patch(Orderline.prototype, {
         line.es_linea_rma_principal = this.es_linea_rma_principal || false;
         line.es_linea_rma_aux = this.es_linea_rma_aux || false;
         line.tipo_linea_rma = this.tipo_linea_rma || "";
+        line.precio_bloqueado = this.precio_bloqueado || 0;
 
         return line;
     },
