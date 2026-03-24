@@ -378,16 +378,16 @@ class Reparacion(models.Model):
                 rec.vencimiento_garantia = False
 
 
-    @api.constrains('fecha_entrega', 'fecha_recepcion')
-    def _check_fecha_entrega_no_anterior_a_recepcion(self):
-        for record in self:
-            if record.fecha_entrega and record.fecha_recepcion:
-                fecha_recepcion_date = fields.Datetime.to_datetime(record.fecha_recepcion).date()
-
-                if record.fecha_entrega < fecha_recepcion_date:
-                    raise ValidationError(
-                        _("La fecha de entrega no puede ser anterior a la fecha de recepción.")
-                    )
+    #@api.constrains('fecha_entrega', 'fecha_recepcion')
+    #def _check_fecha_entrega_no_anterior_a_recepcion(self):
+     #   for record in self:
+      #      if record.fecha_entrega and record.fecha_recepcion:
+       #         fecha_recepcion_date = fields.Datetime.to_datetime(record.fecha_recepcion).date()
+#
+ #               if record.fecha_entrega < fecha_recepcion_date:
+  #                  raise ValidationError(
+   #                     _("La fecha de entrega no puede ser anterior a la fecha de recepción.")
+    #                )
 
     @api.onchange('fecha_entrega')
     def _onchange_fecha_entrega(self):
