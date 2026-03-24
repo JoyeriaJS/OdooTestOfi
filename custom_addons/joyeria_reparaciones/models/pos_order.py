@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 
+
 class PosOrder(models.Model):
     _inherit = 'pos.order'
 
@@ -22,7 +23,6 @@ class PosOrder(models.Model):
             order['vendedora_name'] = pos_order.vendedora_id.name if pos_order.vendedora_id else ""
 
         return result
-
 
     # ==========================================
     # CAMPOS PARA EXPORTAR MÉTODOS DE PAGO
@@ -137,3 +137,40 @@ class PosOrder(models.Model):
             order.total_venta_efectivo = venta_efectivo
             order.total_venta_credito = venta_credito
             order.total_venta_transferencia = venta_transferencia
+
+    @api.model
+    def create_from_ui(self, orders, draft=False):
+        result = super().create_from_ui(orders, draft=draft)
+
+        Reparacion = self.env['joyeria.reparacion']
+
+        for order_data in orders:
+            data = order_data.get('data', {})
+            pos_reference = data.get('name')
+
+            pos_order = self.search([('pos_reference', '=', pos_reference)], limit=1)
+            if not pos_order:
+                continue
+
+            for line in pos_order.lines:
+                if not line.es_linea_rma_principal:
+                    continue
+
+                if not line.numero_rma:
+                    continue
+
+                reparacion = Reparacion.search([('name', '=', line.numero_rma)], limit=1)
+                if not reparacion:
+                    continue
+
+                saldo_pagado = float(line.saldo_rma or 0.0)
+                if saldo_pagado <= 0:
+                    continue
+
+                nuevo_abono = float(reparacion.abono or 0.0) + saldo_pagado
+
+                reparacion.write({
+                    'abono': nuevo_abono,
+                })
+
+        return result
