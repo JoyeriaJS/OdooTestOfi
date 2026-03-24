@@ -13,6 +13,7 @@ patch(PaymentScreen.prototype, {
         const { confirmed, payload } = await this.popup.add(TextInputPopup, {
             title: "Clave de Vendedora",
             body: "Ingrese o escanee la clave para validar la venta",
+            isPassword: true,
         });
 
         if (!confirmed || !payload) {
