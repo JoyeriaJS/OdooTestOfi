@@ -73,8 +73,7 @@
                                groups="base.group_system"
                                col="2">
                             <label for="metal_utilizado"/>
-                            <field name="metal_utilizado"
-                            style="background-color:#e6f0ff; color:#003366;"/>
+                            <field name="metal_utilizado"/>
                             
 
                             <!-- PLATA -->
@@ -157,7 +156,7 @@
                                 <field name="metales_extra"/>
 
                                 <field name="peso_total" readonly="1"
-                                style="background-color:#e6f0ff; color:#003366;"/>
+                                style="background-color:#fff8b3; color:#665c00; font-weight:bold;"/>
 
                                 <field name="cobro_interno"/>
                                 <field name="hechura"/>
@@ -165,7 +164,7 @@
                                 <field name="cobros_extras"/>
 
                                 <field name="total_salida_taller" readonly="1"
-                                style="background-color:#e6f0ff; color:#003366;"/>
+                                style="background-color:#fff8b3; color:#665c00; font-weight:bold;"/>
 
                                 <field name="clave_firma_manual" password="True"/>
                                 <field name="firma_id" readonly="1"/>
