@@ -232,6 +232,14 @@
                         </group>
 
                     </group>
+                     <!-- AUTORIZACIÓN PARA RMA SIN COSTO -->
+                        <group string="Autorización (solo si es sin costo)"
+                            visibility_condition="requiere_autorizacion == True">
+
+                            <field name="codigo_ingresado"
+                                force_save="1"
+                                placeholder="Ingresa el código entregado por administración"/>
+                        </group>
 
 
                     <!-- NOTAS -->
@@ -291,48 +299,43 @@
                     TREE VIEW
     ====================================== -->
 
+    <!-- Vista árbol -->
     <record id="view_custom_repair_order_tree" model="ir.ui.view">
-
         <field name="name">custom.repair.order.tree</field>
         <field name="model">joyeria.reparacion</field>
-
         <field name="arch" type="xml">
-
-            <tree string="Órdenes de Reparación">
-
-                <field name="name"/>
+            <tree string="Órdenes de Reparación" create="1"
+                  decoration-info="estado == 'presupuesto'"
+                  decoration-success="estado == 'confirmado'"
+                  decoration-primary="estado == 'reparado'"
+                  decoration-danger="estado == 'reparado y entregado'">
+                <field name="name" type="open"/>
                 <field name="tipo_joya"/>
                 <field name="cliente_id"/>
                 <field name="direccion_entrega"/>
                 <field name="vencimiento_garantia"/>
                 <field name="estado"/>
-
             </tree>
-
         </field>
-
     </record>
 
 
 
-    <!-- ======================================
-                    ACCION
-    ====================================== -->
-
+    <!-- Acción y Menú -->
     <record id="action_joyeria_reparacion_listado" model="ir.actions.act_window">
         <field name="name">Órdenes de Reparación</field>
         <field name="res_model">joyeria.reparacion</field>
         <field name="view_mode">tree,form</field>
     </record>
 
-
-
-    <!-- ======================================
-                    MENU
-    ====================================== -->
+    <record id="action_joyeria_reparacion" model="ir.actions.act_window">
+        <field name="name">Reparaciones</field>
+        <field name="res_model">joyeria.reparacion</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_joyeria_reparacion_form"/>
+    </record>
 
     <menuitem id="menu_joyeria_root"
               name="Reparaciones"
               action="action_joyeria_reparacion_listado"/>
-
 </odoo>
