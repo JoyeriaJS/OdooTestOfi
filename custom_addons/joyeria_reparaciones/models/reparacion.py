@@ -389,19 +389,19 @@ class Reparacion(models.Model):
    #                     _("La fecha de entrega no puede ser anterior a la fecha de recepción.")
     #                )
 
-    @api.onchange('fecha_entrega')
-    def _onchange_fecha_entrega(self):
-        if self.fecha_entrega and self.fecha_recepcion:
-            fecha_recepcion_date = fields.Datetime.to_datetime(self.fecha_recepcion).date()
-
-            if self.fecha_entrega < fecha_recepcion_date:
-                self.fecha_entrega = False
-                return {
-                    'warning': {
-                        'title': _('Fecha inválida'),
-                        'message': _('La fecha de entrega no puede ser anterior a la fecha de recepción.'),
-                    }
-                }
+    #@api.onchange('fecha_entrega')
+    #def _onchange_fecha_entrega(self):
+     #   if self.fecha_entrega and self.fecha_recepcion:
+      #      fecha_recepcion_date = fields.Datetime.to_datetime(self.fecha_recepcion).date()
+#
+ #           if self.fecha_entrega < fecha_recepcion_date:
+  #              self.fecha_entrega = False
+   #             return {
+    #                'warning': {
+     #                   'title': _('Fecha inválida'),
+      #                  'message': _('La fecha de entrega no puede ser anterior a la fecha de recepción.'),
+       #             }
+        #        }
 
 
     @api.onchange('express')
