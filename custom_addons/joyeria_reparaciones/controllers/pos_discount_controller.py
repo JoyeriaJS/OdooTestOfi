@@ -20,7 +20,16 @@ class PosDiscountController(http.Controller):
             'tipo_descuento': descuento.tipo_descuento,
             'porcentaje': descuento.porcentaje,
             'monto': descuento.monto,
-
-            # 🔥 ESTO ES LO QUE TE FALTA
             'metodos_pago_nombres': descuento.metodos_pago_ids.mapped('name'),
         }
+
+
+    @http.route('/pos/usar_descuento', type='json', auth='user')
+    def usar_descuento(self, descuento_id):
+
+        descuento = request.env['joyeria.pos.discount'].sudo().browse(descuento_id)
+
+        if descuento and descuento.exists():
+            descuento.usado = True
+
+        return True
