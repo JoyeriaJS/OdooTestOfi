@@ -67,7 +67,9 @@ patch(PaymentScreen.prototype, {
         paymentlines.forEach(line => {
             const name = line.payment_method.name.toLowerCase();
 
-            if (name.includes("efectivo") || name.includes("transferencia")) {
+            if (name.includes("efectivo") || name.includes("transferencia")
+                || name.includes("credito") 
+        ){
                 metodoPermitido = true;
             }
         });
