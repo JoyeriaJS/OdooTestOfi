@@ -94,17 +94,19 @@ if (metodoPermitido) {
         }
 
         // ==============================
-        // 🔥 VALIDACIÓN MÉTODO DE PAGO REAL
+        // VALIDACIÓN MÉTODO DE PAGO REAL
         // ==============================
 
         const metodosPagoOrden = paymentlines.map(
-            line => line.payment_method.id
+            line => line.payment_method.name.toLowerCase()
         );
 
-        const metodosPermitidos = descuento.metodos_pago_ids || [];
+        const metodosPermitidos = (descuento.metodos_pago_nombres || []).map(
+            name => name.toLowerCase()
+        );
 
-        const metodoValido = metodosPagoOrden.every(metodoId =>
-            metodosPermitidos.includes(metodoId)
+        const metodoValido = metodosPagoOrden.every(metodo =>
+            metodosPermitidos.includes(metodo)
         );
 
         if (!metodoValido) {
@@ -142,7 +144,9 @@ if (metodoPermitido) {
         alert("Descuento aplicado correctamente");
     }
 }
-
+await this.rpc("/pos/usar_descuento", {
+    descuento_id: descuento.id
+});
 
 }
 

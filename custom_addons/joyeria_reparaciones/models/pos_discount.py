@@ -62,11 +62,16 @@ class PosDiscount(models.Model):
         if not descuento:
             return False
 
-        descuento.usado = True
-
         return {
+            'id': descuento.id,  # 🔥 IMPORTANTE
             'tipo_descuento': descuento.tipo_descuento,
             'porcentaje': descuento.porcentaje,
             'monto': descuento.monto,
             'metodos_pago_ids': descuento.metodos_pago_ids.ids,
         }
+    
+    @api.model
+    def usar_descuento(self, descuento_id):
+        descuento = self.browse(descuento_id)
+        if descuento and not descuento.usado:
+            descuento.usado = True
