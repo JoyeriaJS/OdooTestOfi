@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import models, fields, api
 import random
 import string
 
@@ -37,6 +37,10 @@ class PosDiscount(models.Model):
         "Fecha creación",
         default=fields.Datetime.now
     )
+    metodos_pago_ids = fields.Many2many(
+    'pos.payment.method',
+    string="Métodos de pago permitidos"
+    )
 
     def generar_codigo(self):
         codigo = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
@@ -46,3 +50,23 @@ class PosDiscount(models.Model):
         if vals.get('name', 'Nuevo') == 'Nuevo':
             vals['name'] = self.generar_codigo()
         return super().create(vals)
+    
+    @api.model
+    def validar_descuento(self, codigo):
+        descuento = self.search([
+            ('name', '=', codigo),
+            ('activo', '=', True),
+            ('usado', '=', False)
+        ], limit=1)
+
+        if not descuento:
+            return False
+
+        descuento.usado = True
+
+        return {
+            'tipo_descuento': descuento.tipo_descuento,
+            'porcentaje': descuento.porcentaje,
+            'monto': descuento.monto,
+            'metodos_pago_ids': descuento.metodos_pago_ids.ids,
+        }

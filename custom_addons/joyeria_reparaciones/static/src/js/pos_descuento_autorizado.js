@@ -58,71 +58,92 @@ patch(PaymentScreen.prototype, {
 
 
         // ==============================
-        // DESCUENTO AUTORIZADO
-        // ==============================
+// DESCUENTO AUTORIZADO
+// ==============================
 
-        const paymentlines = order.paymentlines;
-        let metodoPermitido = false;
+const paymentlines = order.paymentlines;
 
-        paymentlines.forEach(line => {
-            const name = line.payment_method.name.toLowerCase();
+let metodoPermitido = false;
 
-            if (name.includes("efectivo") || name.includes("transferencia")
-                || name.includes("credito") || name.includes("crédito")
-        ){
-                metodoPermitido = true;
-            }
+paymentlines.forEach(line => {
+    const name = line.payment_method.name.toLowerCase();
+
+    if (
+        name.includes("efectivo") ||
+        name.includes("transferencia") ||
+        name.includes("credito") ||
+        name.includes("crédito")
+    ) {
+        metodoPermitido = true;
+    }
+});
+
+if (metodoPermitido) {
+
+    const codigo = prompt("Ingrese código de autorización de descuento");
+
+    if (codigo) {
+
+        const descuento = await this.rpc("/pos/validar_descuento", {
+            codigo: codigo
         });
 
-        if (metodoPermitido) {
+        if (!descuento) {
+            alert("Código inválido o ya utilizado");
+            return;
+        }
 
-            const codigo = prompt("Ingrese código de autorización de descuento");
+        // ==============================
+        // 🔥 VALIDACIÓN MÉTODO DE PAGO REAL
+        // ==============================
 
-            if (codigo) {
+        const metodosPagoOrden = paymentlines.map(
+            line => line.payment_method.id
+        );
 
-                const descuento = await this.rpc("/pos/validar_descuento", {
-                    codigo: codigo
-                });
+        const metodosPermitidos = descuento.metodos_pago_ids || [];
 
-                if (descuento) {
+        const metodoValido = metodosPagoOrden.every(metodoId =>
+            metodosPermitidos.includes(metodoId)
+        );
 
-                    const lines = order.get_orderlines();
+        if (!metodoValido) {
+            alert("Este descuento no es válido para el método de pago seleccionado.");
+            return;
+        }
 
-                    if (descuento.tipo_descuento === "porcentaje") {
+        // ==============================
+        // APLICAR DESCUENTO
+        // ==============================
 
-                        const porcentaje = parseFloat(descuento.porcentaje);
+        const lines = order.get_orderlines();
 
-                        lines.forEach(line => {
-                            line.set_discount(porcentaje);
-                        });
+        if (descuento.tipo_descuento === "porcentaje") {
 
-                    }
+            const porcentaje = parseFloat(descuento.porcentaje);
 
-                    if (descuento.tipo_descuento === "monto") {
-
-                        const total = order.get_total_with_tax();
-                        const porcentaje = (descuento.monto / total) * 100;
-
-                        lines.forEach(line => {
-                            line.set_discount(porcentaje);
-                        });
-
-                    }
-
-                    alert("Descuento aplicado correctamente");
-
-                } else {
-
-                    alert("Código inválido o ya utilizado");
-                    return;
-
-                }
-
-            }
+            lines.forEach(line => {
+                line.set_discount(porcentaje);
+            });
 
         }
 
-        await super.validateOrder(isForceValidate);
+        if (descuento.tipo_descuento === "monto") {
+
+            const total = order.get_total_with_tax();
+            const porcentaje = (descuento.monto / total) * 100;
+
+            lines.forEach(line => {
+                line.set_discount(porcentaje);
+            });
+
+        }
+
+        alert("Descuento aplicado correctamente");
     }
+}
+
+
+}
 
 });

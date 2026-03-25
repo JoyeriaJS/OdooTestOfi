@@ -40,6 +40,8 @@
 
                         <field name="monto"/>
 
+                        <field name="metodos_pago_ids" widget="many2many_tags"/>
+
                         <field name="activo"/>
 
                         <field name="usado" readonly="1"/>
