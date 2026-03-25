@@ -68,7 +68,7 @@ patch(PaymentScreen.prototype, {
             const name = line.payment_method.name.toLowerCase();
 
             if (name.includes("efectivo") || name.includes("transferencia")
-                || name.includes("credito") 
+                || name.includes("credito") || name.includes("crédito")
         ){
                 metodoPermitido = true;
             }
