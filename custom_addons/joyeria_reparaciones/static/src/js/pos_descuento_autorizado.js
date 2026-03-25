@@ -58,31 +58,34 @@ patch(PaymentScreen.prototype, {
 
 
         // ==============================
+// ==============================
 // DESCUENTO AUTORIZADO
 // ==============================
 
-const paymentlines = order.paymentlines;
+    const paymentlines = order.paymentlines;
 
-let metodoPermitido = false;
+    let metodoPermitido = false;
 
-paymentlines.forEach(line => {
-    const name = line.payment_method.name.toLowerCase();
+    paymentlines.forEach(line => {
+        const name = line.payment_method.name.toLowerCase();
 
-    if (
-        name.includes("efectivo") ||
-        name.includes("transferencia") ||
-        name.includes("credito") ||
-        name.includes("crédito")
-    ) {
-        metodoPermitido = true;
-    }
-});
+        if (
+            name.includes("efectivo") ||
+            name.includes("transferencia") ||
+            name.includes("credito") ||
+            name.includes("crédito")
+        ) {
+            metodoPermitido = true;
+        }
+    });
 
-if (metodoPermitido) {
+    if (metodoPermitido) {
 
-    const codigo = prompt("Ingrese código de autorización de descuento");
+        const codigo = prompt("Ingrese código de autorización de descuento");
 
-    if (codigo) {
+        if (!codigo) {
+            return;
+        }
 
         const descuento = await this.rpc("/pos/validar_descuento", {
             codigo: codigo
@@ -94,15 +97,21 @@ if (metodoPermitido) {
         }
 
         // ==============================
+        // 🔥 DEBUG (NO BORRAR AÚN)
+        // ==============================
+        console.log("Orden:", paymentlines.map(l => l.payment_method.name));
+        console.log("Permitidos:", descuento.metodos_pago_nombres);
+
+        // ==============================
         // VALIDACIÓN MÉTODO DE PAGO REAL
         // ==============================
 
         const metodosPagoOrden = paymentlines.map(
-            line => line.payment_method.name.toLowerCase()
+            line => line.payment_method.name.toLowerCase().trim()
         );
 
         const metodosPermitidos = (descuento.metodos_pago_nombres || []).map(
-            name => name.toLowerCase()
+            name => name.toLowerCase().trim()
         );
 
         const metodoValido = metodosPagoOrden.every(metodo =>
@@ -141,13 +150,17 @@ if (metodoPermitido) {
 
         }
 
+        // ==============================
+        // 🔥 MARCAR COMO USADO (AHORA SÍ)
+        // ==============================
+
+        await this.rpc("/pos/usar_descuento", {
+            descuento_id: descuento.id
+        });
+
         alert("Descuento aplicado correctamente");
     }
-}
-await this.rpc("/pos/usar_descuento", {
-    descuento_id: descuento.id
-});
+
 
 }
-
-});
+    });

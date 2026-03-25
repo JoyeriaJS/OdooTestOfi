@@ -67,7 +67,7 @@ class PosDiscount(models.Model):
             'tipo_descuento': descuento.tipo_descuento,
             'porcentaje': descuento.porcentaje,
             'monto': descuento.monto,
-            'metodos_pago_ids': descuento.metodos_pago_ids.ids,
+            'metodos_pago_nombres': descuento.metodos_pago_ids.mapped('name'),
         }
     
     @api.model
