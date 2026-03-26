@@ -1,14 +1,18 @@
-/** @odoo-module **/
+/* @odoo-module */
 
 import { patch } from "@web/core/utils/patch";
 import { PaymentScreen } from "@point_of_sale/app/screens/payment_screen/payment_screen";
 import { useService } from "@web/core/utils/hooks";
+import { TextInputPopup } from "@point_of_sale/app/utils/input_popups/text_input_popup";
+import { ErrorPopup } from "@point_of_sale/app/errors/popups/error_popup";
 
 patch(PaymentScreen.prototype, {
 
     setup() {
         super.setup();
         this.rpc = useService("rpc");
+        this.orm = useService("orm");
+        this.popup = useService("popup");
     },
 
     async validateOrder(isForceValidate) {
@@ -16,187 +20,139 @@ patch(PaymentScreen.prototype, {
         const order = this.currentOrder;
 
         // ==============================
-        // VALIDACIÓN 50% PRECIO MÍNIMO
+        // 1️⃣ DESCUENTO (PRIMERO)
         // ==============================
 
-        const lines = order.get_orderlines();
+        if (!order.descuento_aplicado) {
 
-        for (let line of lines) {
+            const paymentlines = order.paymentlines || [];
 
-            const esProductoRMA =
-                line.product &&
-                line.product.display_name &&
-                line.product.display_name.trim() === "Producto RMA";
+            let metodoPermitido = false;
 
-            const esLineaAuxiliarRMA =
-                line.es_linea_rma_aux === true &&
-                (
-                    line.tipo_linea_rma === "abono" ||
-                    line.tipo_linea_rma === "subtotal"
+            paymentlines.forEach(line => {
+                const name = (line.payment_method?.name || "").toLowerCase();
+
+                if (
+                    name.includes("efectivo") ||
+                    name.includes("transferencia") ||
+                    name.includes("credito") ||
+                    name.includes("crédito")
+                ) {
+                    metodoPermitido = true;
+                }
+            });
+
+            if (metodoPermitido) {
+
+                const codigo = prompt("Ingrese código de autorización de descuento");
+
+                if (!codigo) {
+                    return;
+                }
+
+                const descuento = await this.rpc("/pos/validar_descuento", {
+                    codigo: codigo
+                });
+
+                if (!descuento) {
+                    alert("Código inválido o ya utilizado");
+                    return;
+                }
+
+                // VALIDAR MÉTODO DE PAGO
+                const metodosOrden = paymentlines.map(
+                    l => (l.payment_method?.name || "").toLowerCase().trim()
                 );
 
-            const esProductoGasto = line.es_producto_gasto === true;
+                const metodosPermitidos = (descuento.metodos_pago_nombres || []).map(
+                    m => (m || "").toLowerCase().trim()
+                );
 
-            if (esProductoRMA || esLineaAuxiliarRMA || esProductoGasto) {
-                continue;
+                const metodoValido = metodosOrden.some(m =>
+                    metodosPermitidos.includes(m)
+                );
+
+                if (!metodoValido) {
+                    alert("Este descuento no es válido para el método de pago seleccionado.");
+                    return;
+                }
+
+                // APLICAR DESCUENTO
+                const lines = order.get_orderlines();
+
+                if (descuento.tipo_descuento === "porcentaje") {
+
+                    const porcentaje = parseFloat(descuento.porcentaje);
+
+                    lines.forEach(line => {
+                        line.set_discount(porcentaje);
+                    });
+
+                }
+
+                if (descuento.tipo_descuento === "monto") {
+
+                    const total = order.get_total_with_tax();
+                    const porcentaje = (descuento.monto / total) * 100;
+
+                    lines.forEach(line => {
+                        line.set_discount(porcentaje);
+                    });
+
+                }
+
+                // MARCAR COMO USADO
+                await this.rpc("/pos/usar_descuento", {
+                    descuento_id: descuento.id
+                });
+
+                order.descuento_aplicado = true;
+
+                alert("Descuento aplicado correctamente");
             }
+        }
 
-            const precioOriginal = line.product.lst_price || 0;
-            const precioVenta = line.get_unit_price();
+        // ==============================
+        // 2️⃣ VENDEDORA (SEGUNDO)
+        // ==============================
 
-            if (precioVenta < (precioOriginal * 0.5)) {
+        if (!order.vendedora_id) {
 
-                alert(
-                    "No se puede vender el producto '" +
-                    line.product.display_name +
-                    "' PRECIO ERRONEO."
-                );
+            const { confirmed, payload } = await this.popup.add(TextInputPopup, {
+                title: "Clave de Vendedora",
+                body: "Ingrese o escanee la clave para validar la venta",
+                isPassword: true,
+            });
 
+            if (!confirmed || !payload) {
                 return;
             }
-        }
 
+            const codigo = payload.trim();
 
-        // ==============================
-// ==============================
-// DESCUENTO AUTORIZADO
-// ==============================
+            const result = await this.orm.call(
+                'joyeria.vendedora',
+                'validar_vendedora_pos',
+                [codigo]
+            );
 
-    const paymentlines = order.paymentlines;
+            if (!result) {
+                await this.popup.add(ErrorPopup, {
+                    title: "Clave inválida",
+                    body: "No se encontró una vendedora con esa clave.",
+                });
+                return;
+            }
 
-    let metodoPermitido = false;
-
-    paymentlines.forEach(line => {
-        const name = line.payment_method.name.toLowerCase();
-
-        if (
-            name.includes("efectivo") ||
-            name.includes("transferencia") ||
-            name.includes("credito") ||
-            name.includes("crédito")
-        ) {
-            metodoPermitido = true;
-        }
-    });
-
-    if (metodoPermitido) {
-
-        const codigo = prompt("Ingrese código de autorización de descuento");
-
-        if (!codigo) {
-            return;
-        }
-
-        const descuento = await this.rpc("/pos/validar_descuento", {
-            codigo: codigo
-        });
-
-        if (!descuento) {
-            alert("Código inválido o ya utilizado");
-            return;
+            order.vendedora_id = result.id;
+            order.vendedora_name = result.name;
         }
 
         // ==============================
-        // 🔥 DEBUG (NO BORRAR AÚN)
+        // 3️⃣ VALIDAR ORDEN (FINAL)
         // ==============================
-        console.log("Orden:", paymentlines.map(l => l.payment_method.name));
-        console.log("Permitidos:", descuento.metodos_pago_nombres);
-
-        // ==============================
-        // VALIDACIÓN MÉTODO DE PAGO REAL
-        // ==============================
-
-        const metodosPagoOrden = paymentlines.map(
-            line => line.payment_method.name.toLowerCase().trim()
-        );
-
-        const metodosPermitidos = (descuento.metodos_pago_nombres || []).map(
-            name => name.toLowerCase().trim()
-        );
-
-        const metodoValido = metodosPagoOrden.every(metodo =>
-            metodosPermitidos.includes(metodo)
-        );
-
-        if (!metodoValido) {
-            alert("Este descuento no es válido para el método de pago seleccionado.");
-            return;
-        }
-
-        // ==============================
-        // APLICAR DESCUENTO
-        // ==============================
-
-        const lines = order.get_orderlines();
-
-        if (descuento.tipo_descuento === "porcentaje") {
-
-            const porcentaje = parseFloat(descuento.porcentaje);
-
-            lines.forEach(line => {
-                line.set_discount(porcentaje);
-            });
-
-        }
-
-        if (descuento.tipo_descuento === "monto") {
-
-            const total = order.get_total_with_tax();
-            const porcentaje = (descuento.monto / total) * 100;
-
-            lines.forEach(line => {
-                line.set_discount(porcentaje);
-            });
-
-        }
-
-        // ==============================
-        // 🔥 MARCAR COMO USADO (AHORA SÍ)
-        // ==============================
-
-        await this.rpc("/pos/usar_descuento", {
-            descuento_id: descuento.id
-        });
-
-        alert("Descuento aplicado correctamente");
-    }
-
-
-        const { confirmed, payload } = await this.popup.add(TextInputPopup, {
-            title: "Clave de Vendedora",
-            body: "Ingrese o escanee la clave para validar la venta",
-            isPassword: true,
-        });
-
-        if (!confirmed || !payload) {
-            return;
-        }
-
-        const codigo = payload.trim();
-
-        // 🔥 Validación directa en backend
-        const result = await this.orm.call(
-            'joyeria.vendedora',
-            'validar_vendedora_pos',
-            [codigo]
-        );
-
-        if (!result) {
-            await this.popup.add(ErrorPopup, {
-                title: "Clave inválida",
-                body: "No se encontró una vendedora con esa clave.",
-            });
-            return;
-        }
-
-        // 🔹 Asignamos a la orden
-        this.currentOrder.vendedora_id = result.id;
-        this.currentOrder.vendedora_name = result.name;
 
         return super.validateOrder(isForceValidate);
+        
     },
-});
-
-
-
-    
+    });
