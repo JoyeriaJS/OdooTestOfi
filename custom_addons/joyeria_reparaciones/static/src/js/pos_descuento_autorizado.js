@@ -160,6 +160,44 @@ patch(PaymentScreen.prototype, {
 
         alert("Descuento aplicado correctamente");
     }
+    patch(PaymentScreen.prototype, {
+
+    async validateOrder(isForceValidate) {
+
+        const { confirmed, payload } = await this.popup.add(TextInputPopup, {
+            title: "Clave de Vendedora",
+            body: "Ingrese o escanee la clave para validar la venta",
+            isPassword: true,
+        });
+
+        if (!confirmed || !payload) {
+            return;
+        }
+
+        const codigo = payload.trim();
+
+        // 🔥 Validación directa en backend
+        const result = await this.orm.call(
+            'joyeria.vendedora',
+            'validar_vendedora_pos',
+            [codigo]
+        );
+
+        if (!result) {
+            await this.popup.add(ErrorPopup, {
+                title: "Clave inválida",
+                body: "No se encontró una vendedora con esa clave.",
+            });
+            return;
+        }
+
+        // 🔹 Asignamos a la orden
+        this.currentOrder.vendedora_id = result.id;
+        this.currentOrder.vendedora_name = result.name;
+
+        return super.validateOrder(isForceValidate);
+    },
+});
 
 
 }
