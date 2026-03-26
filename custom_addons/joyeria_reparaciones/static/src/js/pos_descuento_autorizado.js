@@ -58,109 +58,109 @@ patch(PaymentScreen.prototype, {
 
 
         // ==============================
-// ==============================
-// DESCUENTO AUTORIZADO
-// ==============================
-
-    const paymentlines = order.paymentlines;
-
-    let metodoPermitido = false;
-
-    paymentlines.forEach(line => {
-        const name = line.payment_method.name.toLowerCase();
-
-        if (
-            name.includes("efectivo") ||
-            name.includes("transferencia") ||
-            name.includes("credito") ||
-            name.includes("crédito")
-        ) {
-            metodoPermitido = true;
-        }
-    });
-
-    if (metodoPermitido) {
-
-        const codigo = prompt("Ingrese código de autorización de descuento");
-
-        if (!codigo) {
-            return;
-        }
-
-        const descuento = await this.rpc("/pos/validar_descuento", {
-            codigo: codigo
-        });
-
-        if (!descuento) {
-            alert("Código inválido o ya utilizado");
-            return;
-        }
-
         // ==============================
-        // 🔥 DEBUG (NO BORRAR AÚN)
-        // ==============================
-        console.log("Orden:", paymentlines.map(l => l.payment_method.name));
-        console.log("Permitidos:", descuento.metodos_pago_nombres);
-
-        // ==============================
-        // VALIDACIÓN MÉTODO DE PAGO REAL
+        // DESCUENTO AUTORIZADO
         // ==============================
 
-        const metodosPagoOrden = paymentlines.map(
-            line => line.payment_method.name.toLowerCase().trim()
-        );
+            const paymentlines = order.paymentlines;
 
-        const metodosPermitidos = (descuento.metodos_pago_nombres || []).map(
-            name => name.toLowerCase().trim()
-        );
+            let metodoPermitido = false;
 
-        const metodoValido = metodosPagoOrden.every(metodo =>
-            metodosPermitidos.includes(metodo)
-        );
+            paymentlines.forEach(line => {
+                const name = line.payment_method.name.toLowerCase();
 
-        if (!metodoValido) {
-            alert("Este descuento no es válido para el método de pago seleccionado.");
-            return;
-        }
-
-        // ==============================
-        // APLICAR DESCUENTO
-        // ==============================
-
-        const lines = order.get_orderlines();
-
-        if (descuento.tipo_descuento === "porcentaje") {
-
-            const porcentaje = parseFloat(descuento.porcentaje);
-
-            lines.forEach(line => {
-                line.set_discount(porcentaje);
+                if (
+                    name.includes("efectivo") ||
+                    name.includes("transferencia") ||
+                    name.includes("credito") ||
+                    name.includes("crédito")
+                ) {
+                    metodoPermitido = true;
+                }
             });
 
+            if (metodoPermitido) {
+
+                const codigo = prompt("Ingrese código de autorización de descuento");
+
+                if (!codigo) {
+                    return;
+                }
+
+                const descuento = await this.rpc("/pos/validar_descuento", {
+                    codigo: codigo
+                });
+
+                if (!descuento) {
+                    alert("Código inválido o ya utilizado");
+                    return;
+                }
+
+                // ==============================
+                // 🔥 DEBUG (NO BORRAR AÚN)
+                // ==============================
+                console.log("Orden:", paymentlines.map(l => l.payment_method.name));
+                console.log("Permitidos:", descuento.metodos_pago_nombres);
+
+                // ==============================
+                // VALIDACIÓN MÉTODO DE PAGO REAL
+                // ==============================
+
+                const metodosPagoOrden = paymentlines.map(
+                    line => line.payment_method.name.toLowerCase().trim()
+                );
+
+                const metodosPermitidos = (descuento.metodos_pago_nombres || []).map(
+                    name => name.toLowerCase().trim()
+                );
+
+                const metodoValido = metodosPagoOrden.every(metodo =>
+                    metodosPermitidos.includes(metodo)
+                );
+
+                if (!metodoValido) {
+                    alert("Este descuento no es válido para el método de pago seleccionado.");
+                    return;
+                }
+
+                // ==============================
+                // APLICAR DESCUENTO
+                // ==============================
+
+                const lines = order.get_orderlines();
+
+                if (descuento.tipo_descuento === "porcentaje") {
+
+                    const porcentaje = parseFloat(descuento.porcentaje);
+
+                    lines.forEach(line => {
+                        line.set_discount(porcentaje);
+                    });
+
+                }
+
+                if (descuento.tipo_descuento === "monto") {
+
+                    const total = order.get_total_with_tax();
+                    const porcentaje = (descuento.monto / total) * 100;
+
+                    lines.forEach(line => {
+                        line.set_discount(porcentaje);
+                    });
+
+                }
+
+                // ==============================
+                // 🔥 MARCAR COMO USADO (AHORA SÍ)
+                // ==============================
+
+                await this.rpc("/pos/usar_descuento", {
+                    descuento_id: descuento.id
+                });
+
+                alert("Descuento aplicado correctamente");
+            }
+
+
         }
-
-        if (descuento.tipo_descuento === "monto") {
-
-            const total = order.get_total_with_tax();
-            const porcentaje = (descuento.monto / total) * 100;
-
-            lines.forEach(line => {
-                line.set_discount(porcentaje);
-            });
-
-        }
-
-        // ==============================
-        // 🔥 MARCAR COMO USADO (AHORA SÍ)
-        // ==============================
-
-        await this.rpc("/pos/usar_descuento", {
-            descuento_id: descuento.id
         });
-
-        alert("Descuento aplicado correctamente");
-    }
-
-
-}
-    });
