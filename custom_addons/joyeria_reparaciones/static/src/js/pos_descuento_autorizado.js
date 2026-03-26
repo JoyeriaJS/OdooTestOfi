@@ -163,5 +163,6 @@ patch(PaymentScreen.prototype, {
 
 
 }
+
     });
     
