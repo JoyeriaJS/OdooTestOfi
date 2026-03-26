@@ -1,31 +1,25 @@
 #!/bin/sh
+
 set -e
 
-: "${ODOO_DATABASE_HOST:=$PGHOST}"
-: "${ODOO_DATABASE_PORT:=$PGPORT}"
-: "${ODOO_DATABASE_USER:=$PGUSER}"
-: "${ODOO_DATABASE_PASSWORD:=$PGPASSWORD}"
-: "${ODOO_DATABASE_NAME:=$PGDATABASE}"
+echo Waiting for database...
 
-echo "⏳ Esperando PostgreSQL REAL (no solo puerto)..."
+while ! nc -z ${ODOO_DATABASE_HOST} ${ODOO_DATABASE_PORT} 2>&1; do sleep 1; done; 
 
-# Espera real usando conexión SQL
-until PGPASSWORD=$ODOO_DATABASE_PASSWORD psql -h "$ODOO_DATABASE_HOST" -p "$ODOO_DATABASE_PORT" -U "$ODOO_DATABASE_USER" -d "$ODOO_DATABASE_NAME" -c '\q' 2>/dev/null; do
-  echo "❌ PostgreSQL no listo aún..."
-  sleep 3
-done
-
-echo "✅ PostgreSQL listo. Iniciando Odoo..."
+echo Database is now available
 
 exec odoo \
-  --http-port="${PORT:-8069}" \
-  --without-demo=True \
-  --proxy-mode \
-  --max-cron-threads=0 \
-  --db_host="${ODOO_DATABASE_HOST}" \
-  --db_port="${ODOO_DATABASE_PORT}" \
-  --db_user="${ODOO_DATABASE_USER}" \
-  --db_password="${ODOO_DATABASE_PASSWORD}" \
-  --database="${ODOO_DATABASE_NAME}" \
-  --db_maxconn=20 \
-  --addons-path="/mnt/custom_addons,/usr/lib/python3/dist-packages/odoo/addons"
+    --http-port="${PORT}" \
+    --without-demo=True \
+    --proxy-mode \
+    --db_host="${ODOO_DATABASE_HOST}" \
+    --db_port="${ODOO_DATABASE_PORT}" \
+    --db_user="${ODOO_DATABASE_USER}" \
+    --db_password="${ODOO_DATABASE_PASSWORD}" \
+    --database="${ODOO_DATABASE_NAME}" \
+    --smtp="${ODOO_SMTP_HOST}" \
+    --smtp-port="${ODOO_SMTP_PORT_NUMBER}" \
+    --smtp-user="${ODOO_SMTP_USER}" \
+    --smtp-password="${ODOO_SMTP_PASSWORD}" \
+    --email-from="${ODOO_EMAIL_FROM}" \
+    --addons-path=/mnt/custom_addons,/usr/lib/python3/dist-packages/odoo/addons
