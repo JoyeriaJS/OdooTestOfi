@@ -52,7 +52,6 @@
         'report/report_monthly_rma_pos_template.xml',  
         
     ],
-    "pre_init_hook": "migrate_direccion_entrega",
     'depends': ['point_of_sale'],
     'assets': {
         'point_of_sale._assets_pos': [
