@@ -20,17 +20,56 @@ patch(PaymentScreen.prototype, {
         const order = this.currentOrder;
 
         // ==============================
-        // 1️⃣ DESCUENTO (PRIMERO)
+        // VALIDACIÓN 50% PRECIO MÍNIMO
+        // ==============================
+
+        const lines = order.get_orderlines();
+
+        for (let line of lines) {
+
+            const esProductoRMA =
+                line.product &&
+                line.product.display_name &&
+                line.product.display_name.trim() === "Producto RMA";
+
+            const esLineaAuxiliarRMA =
+                line.es_linea_rma_aux === true &&
+                (
+                    line.tipo_linea_rma === "abono" ||
+                    line.tipo_linea_rma === "subtotal"
+                );
+
+            const esProductoGasto = line.es_producto_gasto === true;
+
+            if (esProductoRMA || esLineaAuxiliarRMA || esProductoGasto) {
+                continue;
+            }
+
+            const precioOriginal = line.product.lst_price || 0;
+            const precioVenta = line.get_unit_price();
+
+            if (precioVenta < (precioOriginal * 0.5)) {
+
+                await this.popup.add(ErrorPopup, {
+                    title: "Precio inválido",
+                    body: "No se puede vender '" + line.product.display_name + "' bajo el 50%",
+                });
+
+                return;
+            }
+        }
+
+        // ==============================
+        // DESCUENTO AUTORIZADO (PRIMERO)
         // ==============================
 
         if (!order.descuento_aplicado) {
 
             const paymentlines = order.paymentlines || [];
-
             let metodoPermitido = false;
 
             paymentlines.forEach(line => {
-                const name = (line.payment_method?.name || "").toLowerCase();
+                const name = (line.payment_method.name || "").toLowerCase();
 
                 if (
                     name.includes("efectivo") ||
@@ -61,7 +100,7 @@ patch(PaymentScreen.prototype, {
 
                 // VALIDAR MÉTODO DE PAGO
                 const metodosOrden = paymentlines.map(
-                    l => (l.payment_method?.name || "").toLowerCase().trim()
+                    l => (l.payment_method.name || "").toLowerCase().trim()
                 );
 
                 const metodosPermitidos = (descuento.metodos_pago_nombres || []).map(
@@ -78,8 +117,6 @@ patch(PaymentScreen.prototype, {
                 }
 
                 // APLICAR DESCUENTO
-                const lines = order.get_orderlines();
-
                 if (descuento.tipo_descuento === "porcentaje") {
 
                     const porcentaje = parseFloat(descuento.porcentaje);
@@ -113,14 +150,14 @@ patch(PaymentScreen.prototype, {
         }
 
         // ==============================
-        // 2️⃣ VENDEDORA (SEGUNDO)
+        // 🔐 VENDEDORA (SEGUNDO)
         // ==============================
 
         if (!order.vendedora_id) {
 
             const { confirmed, payload } = await this.popup.add(TextInputPopup, {
                 title: "Clave de Vendedora",
-                body: "Ingrese o escanee la clave para validar la venta",
+                body: "Ingrese o escanee la clave",
                 isPassword: true,
             });
 
@@ -128,12 +165,10 @@ patch(PaymentScreen.prototype, {
                 return;
             }
 
-            const codigo = payload.trim();
-
             const result = await this.orm.call(
                 'joyeria.vendedora',
                 'validar_vendedora_pos',
-                [codigo]
+                [payload.trim()]
             );
 
             if (!result) {
@@ -149,10 +184,10 @@ patch(PaymentScreen.prototype, {
         }
 
         // ==============================
-        // 3️⃣ VALIDAR ORDEN (FINAL)
+        // VALIDAR ORDEN FINAL
         // ==============================
 
-        return super.validateOrder(isForceValidate);
-        
-    },
-    });
+        return await super.validateOrder(isForceValidate);
+    }
+
+})
