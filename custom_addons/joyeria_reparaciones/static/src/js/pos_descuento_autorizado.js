@@ -15,6 +15,43 @@ patch(PaymentScreen.prototype, {
         this.popup = useService("popup");
     },
 
+    // 🔥 FUNCIÓN REUTILIZABLE
+    async validarVendedora(order) {
+
+        if (order.vendedora_id) {
+            return true;
+        }
+
+        const { confirmed, payload } = await this.popup.add(TextInputPopup, {
+            title: "Clave de Vendedora",
+            body: "Ingrese o escanee la clave",
+            isPassword: true,
+        });
+
+        if (!confirmed || !payload) {
+            return false;
+        }
+
+        const result = await this.orm.call(
+            'joyeria.vendedora',
+            'validar_vendedora_pos',
+            [payload.trim()]
+        );
+
+        if (!result) {
+            await this.popup.add(ErrorPopup, {
+                title: "Clave inválida",
+                body: "No se encontró una vendedora con esa clave.",
+            });
+            return false;
+        }
+
+        order.vendedora_id = result.id;
+        order.vendedora_name = result.name;
+
+        return true;
+    },
+
     async validateOrder(isForceValidate) {
 
         const order = this.currentOrder;
@@ -60,7 +97,14 @@ patch(PaymentScreen.prototype, {
         }
 
         // ==============================
-        // DESCUENTO AUTORIZADO (PRIMERO)
+        // 🔐 VENDEDORA (SIEMPRE PRIMERO)
+        // ==============================
+
+        const vendedoraOK = await this.validarVendedora(order);
+        if (!vendedoraOK) return;
+
+        // ==============================
+        // DESCUENTO AUTORIZADO (SIN CAMBIOS)
         // ==============================
 
         if (!order.descuento_aplicado) {
@@ -98,7 +142,6 @@ patch(PaymentScreen.prototype, {
                     return;
                 }
 
-                // VALIDAR MÉTODO DE PAGO
                 const metodosOrden = paymentlines.map(
                     l => (l.payment_method.name || "").toLowerCase().trim()
                 );
@@ -116,7 +159,6 @@ patch(PaymentScreen.prototype, {
                     return;
                 }
 
-                // APLICAR DESCUENTO
                 if (descuento.tipo_descuento === "porcentaje") {
 
                     const porcentaje = parseFloat(descuento.porcentaje);
@@ -138,7 +180,6 @@ patch(PaymentScreen.prototype, {
 
                 }
 
-                // MARCAR COMO USADO
                 await this.rpc("/pos/usar_descuento", {
                     descuento_id: descuento.id
                 });
@@ -150,44 +191,10 @@ patch(PaymentScreen.prototype, {
         }
 
         // ==============================
-        // 🔐 VENDEDORA (SEGUNDO)
-        // ==============================
-
-        if (!order.vendedora_id) {
-
-            const { confirmed, payload } = await this.popup.add(TextInputPopup, {
-                title: "Clave de Vendedora",
-                body: "Ingrese o escanee la clave",
-                isPassword: true,
-            });
-
-            if (!confirmed || !payload) {
-                return;
-            }
-
-            const result = await this.orm.call(
-                'joyeria.vendedora',
-                'validar_vendedora_pos',
-                [payload.trim()]
-            );
-
-            if (!result) {
-                await this.popup.add(ErrorPopup, {
-                    title: "Clave inválida",
-                    body: "No se encontró una vendedora con esa clave.",
-                });
-                return;
-            }
-
-            order.vendedora_id = result.id;
-            order.vendedora_name = result.name;
-        }
-
-        // ==============================
         // VALIDAR ORDEN FINAL
         // ==============================
 
         return await super.validateOrder(isForceValidate);
     }
 
-})
+});
