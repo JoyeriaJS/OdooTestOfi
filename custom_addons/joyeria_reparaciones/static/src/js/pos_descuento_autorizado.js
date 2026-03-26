@@ -160,9 +160,7 @@ patch(PaymentScreen.prototype, {
 
         alert("Descuento aplicado correctamente");
     }
-    patch(PaymentScreen.prototype, {
 
-    async validateOrder(isForceValidate) {
 
         const { confirmed, payload } = await this.popup.add(TextInputPopup, {
             title: "Clave de Vendedora",
@@ -200,7 +198,5 @@ patch(PaymentScreen.prototype, {
 });
 
 
-}
 
-    });
     
