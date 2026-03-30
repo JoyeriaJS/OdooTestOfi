@@ -1,18 +1,33 @@
-FROM odoo:19.0
+FROM odoo:17.0
+
+# 🔥 Forzar rebuild SIEMPRE (evita cache de Railway)
+ARG CACHE_BUST=1
+RUN echo "Build forced at $(date) - $CACHE_BUST"
 
 ARG LOCALE=en_US.UTF-8
 ENV LANGUAGE=${LOCALE}
 ENV LC_ALL=${LOCALE}
 ENV LANG=${LOCALE}
 
-USER 0
+USER root
 
-RUN apt-get -y update && apt-get install -y --no-install-recommends locales netcat-openbsd \
+# Dependencias necesarias
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    locales \
+    netcat-openbsd \
     && locale-gen ${LOCALE}
+
+# 🔥 Verificación directa de versión (clave para debug)
+RUN odoo --version
 
 WORKDIR /app
 
-COPY --chmod=755 entrypoint.sh ./
+# Copiar entrypoint correctamente
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Addons custom
 COPY ./custom_addons /mnt/custom_addons
 
-ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
+# Usar entrypoint correcto
+ENTRYPOINT ["/entrypoint.sh"]
