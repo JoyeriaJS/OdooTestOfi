@@ -9,11 +9,6 @@ from . import report_monthly_rma_pos
 from . import report_sales_by_store_xlsx
 from . import report_sales_by_vendedora_xlsx
 from . import report_monthly_rma_pos_xlsx
-from . import reparacion_auth_code
-from . import pos_order
-from . import pos_session
-from . import pos_order_line
-from . import pos_discount
 
 
 #from . import res_users

@@ -14,10 +14,9 @@
         'report/report.xml',  # ← este es el que importa
         'report/report_qrcode_template.xml',
         'report/reporte_responsable_report.xml',
-        #'static/src/reparacion_form.js',
+        'static/src/reparacion_form.js',
         'report/reporte_reparaciones_responsable.xml',
         #'views/vendedora_qr_views.xml',
-         #'static/src/xml/pos_rma_line.xml',
         'views/vendedora_views.xml',
         'views/trabajadores_views.xml',
         'report/reporte_reparaciones_responsable.xml',
@@ -27,13 +26,6 @@
         #'views/wizard_reporte_responsables.xml',
         #'views/res_users_inherit.xml',
         'views/reparacion_confirm_view.xml',
-        "views/reparacion_auth_code_view.xml",
-        "views/reparacion_confirm_view.xml",
-        'views/pos_order_line_views.xml',
-        'views/descuentos_pos_views.xml',
-        #'views/pos_menu.xml',
-        
-        
 
         'report/report_salida_taller_xlsx.xml',
         'report/report_sales_by_store_xlsx.xml',
@@ -52,21 +44,6 @@
         'report/report_monthly_rma_pos_template.xml',  
         
     ],
-    'depends': ['point_of_sale'],
-    'assets': {
-        'point_of_sale._assets_pos': [
-            #'joyeria_reparaciones/static/src/xml/pos_rma_line.xml',
-            'joyeria_reparaciones/static/src/js/qr_vendedora.js',
-            'joyeria_reparaciones/static/src/js/pos_descuento_autorizado.js',
-            'joyeria_reparaciones/static/src/js/pos_special_products.js',
-            #'joyeria_reparaciones/static/src/xml/qr_vendedora.xml',
-            'joyeria_reparaciones/static/src/xml/receipt_override.xml',
-            
-
-            
-        ],
-    },
-
     'installable': True,
     'application': True,
 }
