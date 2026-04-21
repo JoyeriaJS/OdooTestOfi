@@ -37,7 +37,7 @@
           <p><strong>Ingreso:</strong> <t t-esc="o.fecha_recepcion"/></p>
           <p><strong>Entrega:</strong> <t t-esc="o.fecha_entrega"/></p>
           <p><strong>Garantia:</strong> <t t-esc="o.vencimiento_garantia or ''"/></p>
-          <p>Joyeria Sebastian no asumira responsabilidad por trabajos no retirados pasados 90 dias desde la fecha pactada para su entrega.</p>
+          <p>Joyeria Sebastian no asumira responsabilidad por trabajos no retirados pasados 30 dias desde la fecha pactada para su entrega.</p>
           
           <div style="margin-top:10px; text-align:center;">
             <img t-if="o.qr" t-att-src="'data:image/png;base64,%s' % o.qr.decode('utf-8')" width="100" height="100"/>

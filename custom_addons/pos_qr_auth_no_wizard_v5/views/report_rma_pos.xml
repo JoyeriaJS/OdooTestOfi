@@ -1,0 +1,42 @@
+<odoo>
+  <report id="action_report_rma_pos" model="pos.session"
+          string="Reporte Diario RMA + POS"
+          report_type="qweb-pdf"
+          name="pos_qr_auth_no_wizard.report_rma_pos_template"
+          file="pos_qr_auth_no_wizard.report_rma_pos_template"
+          attachment_use="False"/>
+  <template id="report_rma_pos_template">
+    <t t-call="web.external_layout">
+      <div class="page">
+        <h2>Reporte Diario RMA + POS</h2>
+        <p>Fecha: <t t-esc="data['date_start']"/></p>
+        <table class="table table-sm">
+          <thead>
+            <tr><th>Tipo</th><th>Referencia</th><th>Fecha</th><th>Cliente</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            <t t-set="rmas" t-value="env['joyeria.reparacion'].search([('fecha_retiro', '&gt;=', data['date_start']), ('fecha_retiro', '&lt;=', data['date_end'])])"/>
+            <t t-foreach="rmas" t-as="r">
+              <tr>
+                <td>RMA</td><td><t t-esc="r.name"/></td><td><t t-esc="r.fecha_retiro"/></td>
+                <td><t t-esc="r.cliente_id.name"/></td><td><t t-esc="r.amount_total"/></td>
+              </tr>
+            </t>
+            <t t-set="poses" t-value="env['pos.order'].search([('date_order', '&gt;=', data['date_start']), ('date_order', '&lt;=', data['date_end'])])"/>
+            <t t-foreach="poses" t-as="p">
+              <tr>
+                <td>POS</td><td><t t-esc="p.name"/></td><td><t t-esc="p.date_order"/></td>
+                <td><t t-esc="p.partner_id.name"/></td><td><t t-esc="p.amount_total"/></td>
+              </tr>
+            </t>
+          </tbody>
+          <tfoot>
+            <tr><td colspan="4"><strong>Total RMA</strong></td><td><t t-esc="sum([r.amount_total for r in rmas])"/></td></tr>
+            <tr><td colspan="4"><strong>Total POS</strong></td><td><t t-esc="sum([p.amount_total for p in poses])"/></td></tr>
+            <tr><td colspan="4"><strong>Gran Total</strong></td><td><t t-esc="sum([r.amount_total for r in rmas]) + sum([p.amount_total for p in poses])"/></td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </t>
+  </template>
+</odoo>

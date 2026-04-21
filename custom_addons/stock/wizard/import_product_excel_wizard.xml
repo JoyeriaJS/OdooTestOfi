@@ -1,0 +1,17 @@
+<odoo>
+    <record id="view_import_product_excel_wizard_form" model="ir.ui.view">
+        <field name="name">wizard.import.product.excel.form</field>
+        <field name="model">wizard.import.product.excel</field>
+        <field name="arch" type="xml">
+            <form string="Importar Productos Excel">
+                <group>
+                    <field name="file" filename="filename"/>
+                </group>
+                <footer>
+                    <button name="import_products" string="Importar" type="object" class="oe_highlight"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

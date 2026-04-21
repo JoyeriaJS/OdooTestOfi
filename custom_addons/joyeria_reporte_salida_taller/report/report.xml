@@ -1,0 +1,11 @@
+<odoo>
+    <report
+        id="action_salida_taller_pdf"
+        model="salida.taller.wizard"
+        string="Reporte salida de taller"
+        report_type="qweb-pdf"
+        name="joyeria_reporte_salida_taller.salida_taller_template"
+        file="joyeria_reporte_salida_taller.salida_taller_template"
+        print_report_name="'Reporte_salida_taller_' + (data['fecha_inicio'] if data else '')"
+    />
+</odoo>

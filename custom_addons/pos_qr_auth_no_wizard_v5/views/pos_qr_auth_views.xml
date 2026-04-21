@@ -1,0 +1,15 @@
+<odoo>
+  <record id="view_pos_session_form_qr_auth" model="ir.ui.view">
+    <field name="name">pos.session.form.qr.auth</field>
+    <field name="model">pos.session</field>
+    <field name="inherit_id" ref="point_of_sale.view_pos_session_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//header" position="inside">
+        <button name="button_print_report" string="Reporte Diario" type="object" class="btn-primary"/>
+      </xpath>
+      <xpath expr="//field[@name='user_id']" position="after">
+        <field name="vendedora_id"/>
+      </xpath>
+    </field>
+  </record>
+</odoo>

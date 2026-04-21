@@ -1,0 +1,36 @@
+<!-- report_product_label_templates.xml -->
+<odoo>
+  <data>
+    <!-- Acción para imprimir etiquetas de productos -->
+    <report
+      id="action_product_label"
+      model="product.product"
+      string="Etiquetas de Producto"
+      report_type="qweb-pdf"
+      name="mi_modulo.report_product_label"
+      file="mi_modulo.report_product_label"
+      attachment_use="False"
+    />
+
+    <!-- Plantilla QWeb para etiquetas de producto -->
+    <template id="report_product_label">
+      <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="o">
+          <!-- Cada etiqueta: 2cm x 2cm -->
+          <div class="page"
+               style="width: 2cm; height: 2cm; display: inline-block; margin: 2mm; border: 1px solid #000; text-align: center; padding: 2px;">
+            <!-- Código de barras gráfico -->
+            <div style="margin-bottom: 2px;">
+              <span t-field="o.barcode"
+                    t-field-options='{"widget": "barcode", "barcode_type": "EAN13", "height": 40}'/>
+            </div>
+            <!-- Número de código debajo -->
+            <div style="font-size: 8px; line-height: 1em;">
+              <t t-esc="o.barcode"/>
+            </div>
+          </div>
+        </t>
+      </t>
+    </template>
+  </data>
+</odoo>

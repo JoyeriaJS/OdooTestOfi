@@ -130,7 +130,6 @@
                   <td><t t-esc="r.solicitud_cliente or ''"/></td>
                   <td><t t-esc="r.fecha_entrega and r.fecha_entrega.strftime('%d/%m/%Y') or ''"/></td>
                   <td><t t-esc="''"/></td>
-
                 </tr>
               </t>
             </tbody>

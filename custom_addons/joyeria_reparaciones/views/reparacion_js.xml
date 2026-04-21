@@ -5,6 +5,8 @@
         <field name="arch" type="xml">
             <form string="Orden de Reparación">
                 <sheet>
+
+                    <!-- CONTENIDO PRINCIPAL -->
                     <group col="2">
 
                         <!-- Información General -->
@@ -20,7 +22,7 @@
                         </group>
 
                         <!-- Producto y Servicio -->
-                        <group string="Producto y Servicio" col="2" >
+                        <group string="Producto y Servicio" col="2">
                             <field name="servicio"/>
                             <field name="tipo_joya" visibility_condition="servicio == 'reparacion'"/>
                             <field name="modelo"/>
@@ -33,42 +35,44 @@
                             <field name="solicitud_cliente" colspan="2"/>
                         </group>
 
-
                         <!-- Datos de salida del taller -->
                         <group string="🔧 Datos de salida del taller" col="2" groups="base.group_system">
-                            <field name="metal_utilizado" groups="base.group_system" options="{'no_empty': True}"/>
+                            <field name="metal_utilizado" groups="base.group_system"/>
                             <field name="gramos_utilizado" groups="base.group_system"
-                                style="background-color:#e6f0ff; color:#003366;"/> <!-- Azul -->
+                                   style="background-color:#e6f0ff; color:#003366;"/>
 
                             <field name="metales_extra" groups="base.group_system"
-                                style="background-color:#e6f0ff; color:#003366;"/> <!-- Azul -->
+                                   style="background-color:#e6f0ff; color:#003366;"/>
 
                             <field name="peso_total" groups="base.group_system" readonly="1"
-                                style="background-color:#fff8b3; color:#665c00; font-weight:bold;"/> <!-- Amarillo + negrita -->
+                                   style="background-color:#fff8b3; color:#665c00; font-weight:bold;"/>
 
                             <field name="cobro_interno" groups="base.group_system"
-                                style="background-color:#d9fdd3; color:#1c6b1c;"/> <!-- Verde -->
+                                   style="background-color:#d9fdd3; color:#1c6b1c;"/>
 
                             <field name="hechura" groups="base.group_system"
-                                style="background-color:#d9fdd3; color:#1c6b1c;"/> <!-- Verde -->
+                                   style="background-color:#d9fdd3; color:#1c6b1c;"/>
 
                             <field name="cobros_extras" groups="base.group_system"
-                                style="background-color:#d9fdd3; color:#1c6b1c;"/> <!-- Verde -->
+                                   style="background-color:#d9fdd3; color:#1c6b1c;"/>
 
                             <field name="total_salida_taller" groups="base.group_system" readonly="1"
-                                style="background-color:#fff8b3; color:#665c00; font-weight:bold;"/> <!-- Amarillo + negrita -->
-                            <field name="clave_firma_manual" password="True" groups="base.group_system" placeholder="Escanear o ingresar clave"/>
+                                   style="background-color:#fff8b3; color:#665c00; font-weight:bold;"/>
+
+                            <field name="clave_firma_manual" password="True" groups="base.group_system"/>
                             <field name="firma_id" readonly="1" groups="base.group_system"/>
                             <field name="fecha_firma" readonly="1" groups="base.group_system"/>
                         </group>
 
                         <!-- Recepción y Entrega -->
                         <group string="Recepción y Entrega" col="2">
-                            <field name="vendedora_id"
-                                   placeholder="Escanea el QR de la vendedora"
-                                   options="{'no_open': True, 'no_create': True, 'no_create_edit': True, 'no_quick_create': True}"
-                                   readonly="1"/>
-                            <field name="clave_autenticacion_manual" password="True" placeholder="Escanea el QR o ingresa la clave"/>
+                            <field name="vendedora_id" readonly="1"
+                                placeholder="Escanea el QR de la vendedora"
+                                options="{'no_open': True, 'no_create': True, 'no_create_edit': True, 'no_quick_create': True}"/>
+
+                            <field name="clave_autenticacion_manual" password="True"
+                                placeholder="Escanea el QR o ingresa la clave"/>
+
                             <field name="local_tienda"/>
                             <field name="fecha_recepcion" readonly="1"/>
                             <field name="fecha_entrega"/>
@@ -79,7 +83,7 @@
 
                         <!-- Datos Financieros -->
                         <group string="Datos Financieros" col="2">
-                            <field name="precio_unitario" />
+                            <field name="precio_unitario"/>
                             <field name="extra"/>
                             <field name="extra2"/>
                             <field name="extra3"/>
@@ -88,11 +92,21 @@
                             <field name="saldo" readonly="1"/>
                         </group>
 
-                        <!-- Notas y Comentarios -->
-                        <group string="Notas y Comentarios" col="2">
-                            <field name="notas"/>
-                            <field name="comentarios"/>
+                    </group> <!-- CIERRE group col="2" -->
+
+                    <!-- AUTORIZACIÓN PARA RMA SIN COSTO -->
+                        <group string="Autorización (solo si es sin costo)"
+                            visibility_condition="requiere_autorizacion == True">
+
+                            <field name="codigo_ingresado"
+                                force_save="1"
+                                placeholder="Ingresa el código entregado por administración"/>
                         </group>
+
+                    <!-- Notas y Comentarios -->
+                    <group string="Notas y Comentarios" col="2">
+                        <field name="notas"/>
+                        <field name="comentarios"/>
                     </group>
 
                     <!-- Pestaña Operaciones -->
@@ -110,19 +124,18 @@
                         </page>
                     </notebook>
 
-                    <!-- Historial de mensajes -->
+                    <!-- Historial -->
                     <div class="oe_chatter">
                         <field name="message_follower_ids" widget="mail_followers"/>
                         <field name="message_ids" widget="mail_thread"/>
-
-                        
                     </div>
+
                 </sheet>
             </form>
         </field>
     </record>
-     <!-- Vista árbol -->
-    
+
+    <!-- Vista árbol -->
     <record id="view_custom_repair_order_tree" model="ir.ui.view">
         <field name="name">custom.repair.order.tree</field>
         <field name="model">joyeria.reparacion</field>
@@ -132,12 +145,12 @@
                   decoration-success="estado == 'confirmado'"
                   decoration-primary="estado == 'reparado'"
                   decoration-danger="estado == 'reparado y entregado'">
-                <field name="name" string="Referencia de reparación" type="open"/>
-                <field name="tipo_joya" string="Producto a reparar"/>
-                <field name="cliente_id" string="Cliente"/>
-                <field name="direccion_entrega" string="Dirección de entrega"/>
-                <field name="vencimiento_garantia" string="Vencimiento de la garantía"/>
-                <field name="estado" string="Estado"/>
+                <field name="name" type="open"/>
+                <field name="tipo_joya"/>
+                <field name="cliente_id"/>
+                <field name="direccion_entrega"/>
+                <field name="vencimiento_garantia"/>
+                <field name="estado"/>
             </tree>
         </field>
     </record>
@@ -147,9 +160,6 @@
         <field name="name">Órdenes de Reparación</field>
         <field name="res_model">joyeria.reparacion</field>
         <field name="view_mode">tree,form</field>
-        <field name="help" type="html">
-            <p>Desde aquí puedes gestionar todas las órdenes de reparación (RMA).</p>
-        </field>
     </record>
 
     <record id="action_joyeria_reparacion" model="ir.actions.act_window">
@@ -159,11 +169,7 @@
         <field name="view_id" ref="view_joyeria_reparacion_form"/>
     </record>
 
-    <menuitem id="menu_joyeria_root" name="Reparaciones" action="action_joyeria_reparacion_listado"/>
-
-    
-    
-    
+    <menuitem id="menu_joyeria_root"
+              name="Reparaciones"
+              action="action_joyeria_reparacion_listado"/>
 </odoo>
-
-

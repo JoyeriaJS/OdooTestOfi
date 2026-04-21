@@ -1,0 +1,10 @@
+<record id="action_reporte_responsables" model="ir.actions.report">
+    <field name="name">Órdenes de Reparación por Responsable</field>
+    <field name="model">res.users</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">joyeria_reparaciones.reporte_reparaciones_responsable</field>
+    <field name="report_file">joyeria_reparaciones.reporte_reparaciones_responsable</field>
+    <field name="binding_model_id" ref="base.model_res_users"/> <!-- clave -->
+    <field name="binding_type">report</field>
+    <field name="print_report_name">'Reparaciones_' + object.name</field>
+  </record>

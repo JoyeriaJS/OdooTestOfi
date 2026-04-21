@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <template id="reporte_reparaciones_responsable">
+    <t t-call="web.html_container">
+      <t t-foreach="docs" t-as="usuario">
+        <t t-set="responsable" t-value="usuario.name"/>
+        <t t-set="reparaciones" t-value="env['joyeria.reparacion'].sudo().search([('responsable_id', '=', usuario.id)], order='fecha_entrega desc')"/>
+
+        <div class="page">
+          <h2 style="text-align: center; margin-bottom: 10px;">Ordenes de Reparacion para <t t-esc="responsable"/></h2>
+          <br/>
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+            <thead>
+              <tr style="background-color: #f2f2f2;">
+                <th style="border: 1px solid #000; padding: 5px;">RMA</th>
+                <th style="border: 1px solid #000; padding: 5px;">CANTIDAD</th>
+                <th style="border: 1px solid #000; padding: 5px;">PRODUCTO</th>
+                <th style="border: 1px solid #000; padding: 5px;">MODELO</th>
+                <th style="border: 1px solid #000; padding: 5px;">METAL</th>
+                <th style="border: 1px solid #000; padding: 5px;">N/CM</th>
+                <th style="border: 1px solid #000; padding: 5px;">PESO</th>
+                <th style="border: 1px solid #000; padding: 25px;">OPERACION</th>
+                <th style="border: 1px solid #000; padding: 5px;">FECHA DE ENTREGA</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="reparaciones" t-as="r">
+                <tr>
+                  <td style="border: 1px solid #000; padding: 4px;"><t t-esc="r.name"/></td>
+                  <td style="border: 1px solid #000; padding: 4px;"><t t-esc="r.cantidad"/></td>
+                  <td style="border: 1px solid #000; padding: 4px;"><t t-esc="r.tipo_joya"/></td>
+                  <td style="border: 1px solid #000; padding: 4px;"><t t-esc="r.producto_id.name"/></td>
+                  <td style="border: 1px solid #000; padding: 4px;"><t t-esc="r.metal"/></td>
+                  <td style="border: 1px solid #000; padding: 4px;"><t t-esc="r.n_cm_fabricacion or r.n_cm_reparacion"/></td>
+                  <td style="border: 1px solid #000; padding: 4px;"><t t-esc="r.peso_valor"/></td>
+                  <td style="border: 1px solid #000; padding: 75px;"><t t-esc="r.solicitud_cliente or ''"/></td>
+                  <td style="border: 1px solid #000; padding: 4px;"><t t-esc="r.fecha_entrega.strftime('%d/%m/%Y') if r.fecha_entrega else ''"/></td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

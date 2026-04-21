@@ -1,0 +1,30 @@
+<odoo>
+    <!-- Acción ventana para abrir el wizard -->
+    <record id="action_wizard_reporte_responsables" model="ir.actions.act_window">
+        <field name="name">Reporte de Reparaciones por Fechas</field>
+        <field name="res_model">reparaciones.responsable.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    <menuitem id="menu_reporte_responsable_wizard"
+          name="Reporte por Fechas"
+          action="action_wizard_reporte_responsables"/>
+    <!-- Vista del wizard (modal) -->
+    <record id="view_reparaciones_responsable_wizard_form" model="ir.ui.view">
+        <field name="name">reparaciones.responsable.wizard.form</field>
+        <field name="model">reparaciones.responsable.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reporte por Responsable">
+                <group>
+                    <field name="responsable"/>
+                    <field name="fecha_inicio"/>
+                    <field name="fecha_fin"/>
+                </group>
+                <footer>
+                    <button name="imprimir_pdf" type="object" string="Imprimir PDF" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

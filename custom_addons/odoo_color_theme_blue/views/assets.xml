@@ -1,0 +1,7 @@
+<odoo>
+    <template id="assets_backend" name="Color Corporativo Azul" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" type="text/css" href="/odoo_color_theme_blue/static/src/css/theme_blue.css"/>
+        </xpath>
+    </template>
+</odoo>

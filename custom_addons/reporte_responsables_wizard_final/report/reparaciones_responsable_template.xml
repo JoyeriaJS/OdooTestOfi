@@ -1,0 +1,54 @@
+<odoo>
+    <template id="reparaciones_responsable_template">
+        <t t-call="web.html_container">
+            <!-- 1. RECUPERA TODOS LOS DATOS DEL CONTEXTO DATA -->
+            <t t-set="data" t-value="data or {}"/>
+            <t t-set="responsable_id" t-value="data.get('responsable_id')"/>
+            <t t-set="responsable_name" t-value="data.get('responsable_name')"/>
+            <t t-set="fecha_inicio" t-value="data.get('fecha_inicio')"/>
+            <t t-set="fecha_fin" t-value="data.get('fecha_fin')"/>
+
+            <!-- 2. BUSCA LAS REPARACIONES CON EL FILTRO CORRECTO -->
+            <t t-set="reparaciones" t-value="
+                env['joyeria.reparacion'].sudo().search([
+                    ('responsable_id', '=', responsable_id),
+                    ('fecha_entrega', '&gt;=', fecha_inicio),
+                    ('fecha_entrega', '&lt;=', fecha_fin)
+                ], order='fecha_entrega desc')
+            "/>
+
+            <div class="page">
+                <h2 style="text-align: center;">Órdenes de Reparación para <t t-esc="responsable_name"/></h2>
+                <p style="text-align: center;">Desde <t t-esc="fecha_inicio"/> hasta <t t-esc="fecha_fin"/></p>
+                <br/>
+                <table style="width:100%;border:1px solid #888;border-collapse: collapse;">
+                    <tr>
+                        <th style="border:1px solid #888;padding:5px;">Cliente</th>
+                        <th style="border:1px solid #888;padding:5px;">Producto</th>
+                        <th style="border:1px solid #888;padding:5px;">Servicio</th>
+                        <th style="border:1px solid #888;padding:5px;">Fecha entrega</th>
+                        <th style="border:1px solid #888;padding:5px;">Estado</th>
+                    </tr>
+                    <t t-if="reparaciones and (reparaciones | length) > 0">
+                        <t t-foreach="reparaciones" t-as="r">
+                            <tr>
+                                <td style="border:1px solid #888;padding:5px;"><t t-esc="r.cliente_id.name"/></td>
+                                <td style="border:1px solid #888;padding:5px;"><t t-esc="r.producto_id.name"/></td>
+                                <td style="border:1px solid #888;padding:5px;"><t t-esc="r.servicio_id.name"/></td>
+                                <td style="border:1px solid #888;padding:5px;"><t t-esc="r.fecha_entrega"/></td>
+                                <td style="border:1px solid #888;padding:5px;"><t t-esc="r.state"/></td>
+                            </tr>
+                        </t>
+                    </t>
+                    <t t-if="not reparaciones or (reparaciones | length) == 0">
+                        <tr>
+                            <td colspan="5" style="text-align:center;">No hay órdenes para este responsable y rango de fechas.</td>
+                        </tr>
+                    </t>
+                </table>
+                <br/>
+                <p style="text-align: right;">Total: <t t-esc="reparaciones and (reparaciones | length) or 0"/> reparaciones</p>
+            </div>
+        </t>
+    </template>
+</odoo>

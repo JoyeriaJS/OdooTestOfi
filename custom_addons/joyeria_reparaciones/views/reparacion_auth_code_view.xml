@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- VISTA LISTA (TREE) -->
+    <record id="view_auth_code_tree" model="ir.ui.view">
+        <field name="name">auth.code.tree</field>
+        <field name="model">joyeria.reparacion.authcode</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="codigo" readonly="1"/>
+                <field name="used" readonly="1"/>
+                <field name="fecha_creacion" readonly="1"/>
+                <field name="fecha_uso" readonly="1"/>
+                <field name="tiempo_restante" readonly="1"/>
+                <field name="usado_por_id" readonly="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- VISTA FORMULARIO (FORM) -->
+    <record id="view_auth_code_form" model="ir.ui.view">
+        <field name="name">auth.code.form</field>
+        <field name="model">joyeria.reparacion.authcode</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="codigo" readonly="1"/>
+                        <field name="used" readonly="1"/>
+                        <field name="fecha_creacion" readonly="1"/>
+                        <field name="fecha_uso" readonly="1"/>
+                        <field name="tiempo_restante" readonly="1"/>
+                        <field name="usado_por_id" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ACCIÓN -->
+    <record id="action_auth_code" model="ir.actions.act_window">
+        <field name="name">Códigos de Autorización</field>
+        <field name="res_model">joyeria.reparacion.authcode</field>
+        <field name="view_mode">tree,form</field>
+        <field name="groups_id" eval="[(4, ref('base.group_system'))]"/>
+    </record>
+
+    <!-- MENÚ -->
+    <menuitem id="menu_auth_code"
+              name="Códigos de Autorización"
+              parent="menu_joyeria_root"
+              action="action_auth_code"
+              groups="base.group_system"/>
+
+</odoo>

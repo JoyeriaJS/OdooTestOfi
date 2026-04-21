@@ -16,6 +16,5 @@ class JoyeriaProducto(models.Model):
     peso = fields.Float(string='Peso (g)')
     modelo = fields.Char(string='Modelo')
     precio_unitario = fields.Float(string='Precio unitario', tracking=True)
-
     
     imagen = fields.Image(string='Imagen del producto')

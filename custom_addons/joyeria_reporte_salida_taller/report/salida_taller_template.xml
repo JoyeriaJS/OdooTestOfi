@@ -1,0 +1,45 @@
+<odoo>
+    <template id="salida_taller_template">
+        <t t-call="web.html_container">
+            <t t-set="fecha_inicio" t-value="data['fecha_inicio']"/>
+            <t t-set="fecha_fin" t-value="data['fecha_fin']"/>
+            <t t-set="registros" t-value="env['joyeria.reparacion'].sudo().search([('fecha_entrega', '&gt;=', fecha_inicio), ('fecha_entrega', '&lt;=', fecha_fin)])"/>
+            <div class="page">
+                <h2 style="text-align:center;">Reporte de Salida del Taller</h2>
+                <p style="text-align:center;">
+                    Desde <t t-esc="fecha_inicio"/> hasta <t t-esc="fecha_fin"/>
+                </p>
+                <br/>
+                <table style="width:100%;border:1px solid #888;border-collapse: collapse;">
+                    <tr>
+                        <th style="border:1px solid #888;padding:5px;">Fecha Entrega</th>
+                        <th style="border:1px solid #888;padding:5px;">Metal utilizado</th>
+                        <th style="border:1px solid #888;padding:5px;">Metales extra</th>
+                        <th style="border:1px solid #888;padding:5px;">Cobro interno</th>
+                        <th style="border:1px solid #888;padding:5px;">Hechura</th>
+                        <th style="border:1px solid #888;padding:5px;">Cobros extras</th>
+                        <th style="border:1px solid #888;padding:5px;">Total salida taller</th>
+                    </tr>
+                    <t t-foreach="registros" t-as="r">
+                        <tr>
+                            <td style="border:1px solid #888;padding:5px;"><t t-esc="r.fecha_entrega"/></td>
+                            <td style="border:1px solid #888;padding:5px;"><t t-esc="r.metal_utilizado"/></td>
+                            <td style="border:1px solid #888;padding:5px;"><t t-esc="r.metales_extra"/></td>
+                            <td style="border:1px solid #888;padding:5px;"><t t-esc="r.cobro_interno"/></td>
+                            <td style="border:1px solid #888;padding:5px;"><t t-esc="r.hechura"/></td>
+                            <td style="border:1px solid #888;padding:5px;"><t t-esc="r.cobros_extras"/></td>
+                            <td style="border:1px solid #888;padding:5px;"><t t-esc="r.total_salida_taller"/></td>
+                        </tr>
+                    </t>
+                </table>
+                <br/>
+                <h4 style="text-align:right;">
+                    Total Cobro Interno: <t t-esc="registros.mapped('cobro_interno') and '%.2f' % sum(registros.mapped('cobro_interno')) or '0.00'"/> <br/>
+                    Total Hechura: <t t-esc="registros.mapped('hechura') and '%.2f' % sum(registros.mapped('hechura')) or '0.00'"/> <br/>
+                    Total Cobros Extras: <t t-esc="registros.mapped('cobros_extras') and '%.2f' % sum(registros.mapped('cobros_extras')) or '0.00'"/> <br/>
+                    <strong>Gran Total Salida Taller:</strong> <t t-esc="registros.mapped('total_salida_taller') and '%.2f' % sum(registros.mapped('total_salida_taller')) or '0.00'"/>
+                </h4>
+            </div>
+        </t>
+    </template>
+</odoo>

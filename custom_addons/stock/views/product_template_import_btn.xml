@@ -1,0 +1,15 @@
+<odoo>
+    <record id="view_product_template_tree_import_excel" model="ir.ui.view">
+        <field name="name">product.template.tree.import.excel</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="before">
+                <header>
+                    <button name="%(action_import_product_excel)d" string="Importar Productos Excel" type="action" class="oe_highlight"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

@@ -1,0 +1,35 @@
+<odoo>
+    <!-- 1. Vista del wizard -->
+    <record id="view_salida_taller_wizard_form" model="ir.ui.view">
+        <field name="name">salida.taller.wizard.form</field>
+        <field name="model">salida.taller.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reporte de salida del taller">
+                <group>
+                    <field name="fecha_inicio"/>
+                    <field name="fecha_fin"/>
+                </group>
+                <footer>
+                    <button name="imprimir_pdf" string="Generar PDF" type="object" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- 2. Acción del wizard -->
+    <record id="action_salida_taller_wizard" model="ir.actions.act_window">
+        <field name="name">Reporte salida de taller</field>
+        <field name="res_model">salida.taller.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_salida_taller_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- 3. Menú para acceder al wizard -->
+    <menuitem id="menu_salida_taller_report"
+              name="Reporte salida de taller"
+              parent="joyeria_reparaciones.menu_joyeria_root"
+              action="action_salida_taller_wizard"
+              sequence="110"/>
+</odoo>

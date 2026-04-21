@@ -3,6 +3,7 @@ access_joyeria_reparacion,access_joyeria_reparacion,model_joyeria_reparacion,,1,
 access_joyeria_producto,access_joyeria_producto,model_joyeria_producto,,1,1,1,1
 access_vendedora_all,vendedora access,model_joyeria_vendedora,,1,1,1,1
 access_wizard_set_precio_oros,wizard.set.precio.oros,model_wizard_set_precio_oros,,1,1,1,1
+access_auth_code_manager,access_auth_code_manager,model_joyeria_reparacion_authcode,,1,1,1,1
 
 
 

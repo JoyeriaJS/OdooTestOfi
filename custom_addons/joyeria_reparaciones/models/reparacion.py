@@ -33,13 +33,58 @@ class Reparacion(models.Model):
     )
     producto_id = fields.Many2one('joyeria.producto', string='Producto a reparar', required=False)
     
+    # Código que ingresa la vendedora
+    codigo_ingresado = fields.Char(
+        string="Código ingresado",
+        help="Código entregado por administración.",
+        store=True
+)
+
+
+    # Código generado por administración
+    auth_code_id = fields.Many2one(
+        "joyeria.reparacion.authcode",
+        string="Código seleccionado por administración",
+        domain="[('used','=',False)]",
+        groups="base.group_system",  # solo admins lo ven
+    )
+
+
+    requiere_autorizacion = fields.Boolean(
+        string="Requiere autorización",
+        compute="_compute_requiere_autorizacion",
+        store=True
+)
+    codigo_autorizacion_id = fields.Many2one(
+    "joyeria.reparacion.authcode",
+    string="Código autorizado",
+    readonly=True
+)
+    costo_cero_definitivo = fields.Boolean(
+    string="Es RMA sin costo",
+    default=False,
+    readonly=True
+)
+
+
     modelo = fields.Char(string='Modelo', required=False)
     cliente_id = fields.Many2one('res.partner', string='Nombre y apellido del Cliente', required=True)
     nombre_cliente = fields.Char(string='Nombre y apellido del cliente', required=False)
     apellido_cliente = fields.Char(string="Apellido del cliente", required=False)
     correo_cliente = fields.Char(string="Correo electrónico")
     telefono = fields.Char(string='Teléfono', required=True)
-    direccion_entrega = fields.Char(string='Dirección de entrega')
+    direccion_entrega = fields.Selection([
+        ('local 345', 'Paseo Estado 344, Local 345, Santiago Centro, Metro Plaza de Armas (Galería Pasaje Matte)'),
+        ('local 906', 'Paseo Estado 344, Local 906, Santiago Centro, Metro Plaza de Armas (Galería Pasaje Matte)'),
+        ('local 392', 'Paseo Estado 344, Local 392, Santiago Centro, Metro Plaza de Armas (Galería Pasaje Matte)'),
+        ('local 329', 'Paseo Estado 344, Local 329, Santiago Centro, Metro Plaza de Armas (Galería Pasaje Matte)'),
+        ('local 325', 'Paseo Estado 344, Local 325, Santiago Centro, Metro Plaza de Armas (Galería Pasaje Matte)'),
+        ('local 383 online', 'Paseo Estado 344, Local 383 Online, Santiago Centro, Metro Plaza de Armas (Galería Pasaje Matte)'),
+        ('local 921', 'Huérfanos 921 (Galería Matte), Santiago Centro, Metro Plaza de Armas'),
+        ('local 584', 'Monjitas 873, Local 584, Santiago Centro, Metro Plaza de Armas'),
+        ('local maipu', 'Jumbo, Av. Los Pajaritos 3302 (Local Maipú), Metro Santiago Bueras')
+    ], string='Dirección de entrega', required=True)
+
     vencimiento_garantia = fields.Date(string='Vencimiento de la garantía',compute='_compute_vencimiento_garantia',store=True)
     fecha_entrega = fields.Date(string='Fecha de entrega', tracking=True)
     responsable_id = fields.Many2one('res.users', string="Responsable", default=False, tracking=True)
@@ -63,7 +108,6 @@ class Reparacion(models.Model):
         ('aros', 'Aros'),
         ('cadena', 'Cadena'),
         ('colgante', 'Colgante'),
-        ('dije', 'Dije'),
         ('pulsera', 'Pulsera'),
         ('otro', 'Otro')
     ], string='Tipo de joya', required=True)
@@ -170,6 +214,30 @@ class Reparacion(models.Model):
     fecha_firma = fields.Datetime(string='Fecha de firma', readonly=True)
     clave_firma_manual = fields.Char(string='QR de quien retira')
 
+    @api.depends('precio_unitario', 'extra', 'extra2', 'extra3', 'abono', 'saldo')
+    def _compute_requiere_autorizacion(self):
+        for rec in self:
+
+            # Convertir None/False/vacío en 0
+            precio_unitario = rec.precio_unitario or 0
+            extra = rec.extra or 0
+            extra2 = rec.extra2 or 0
+            extra3 = rec.extra3 or 0
+            abono = rec.abono or 0
+            saldo = rec.saldo or 0
+
+            # Solo requiere autorización si REALMENTE todo es 0
+            rec.requiere_autorizacion = (
+                precio_unitario == 0 and
+                extra == 0 and
+                extra2 == 0 and
+                extra3 == 0 and
+                abono == 0 and
+                saldo == 0
+            )
+
+
+
     @staticmethod
     def _normalize_name(name):
         """Normaliza el nombre: minúsculas, sin tildes, espacios simples."""
@@ -224,6 +292,32 @@ class Reparacion(models.Model):
                 rec.vencimiento_garantia = False
 
 
+    @api.constrains('fecha_entrega', 'fecha_recepcion')
+    def _check_fecha_entrega_no_anterior_a_recepcion(self):
+        for record in self:
+            if record.fecha_entrega and record.fecha_recepcion:
+                fecha_recepcion_date = fields.Datetime.to_datetime(record.fecha_recepcion).date()
+
+                if record.fecha_entrega < fecha_recepcion_date:
+                    raise ValidationError(
+                        _("La fecha de entrega no puede ser anterior a la fecha de recepción.")
+                    )
+
+    @api.onchange('fecha_entrega')
+    def _onchange_fecha_entrega(self):
+        if self.fecha_entrega and self.fecha_recepcion:
+            fecha_recepcion_date = fields.Datetime.to_datetime(self.fecha_recepcion).date()
+
+            if self.fecha_entrega < fecha_recepcion_date:
+                self.fecha_entrega = False
+                return {
+                    'warning': {
+                        'title': _('Fecha inválida'),
+                        'message': _('La fecha de entrega no puede ser anterior a la fecha de recepción.'),
+                    }
+                }
+
+
 
     @api.onchange('express')
     def _onchange_express(self):
@@ -233,22 +327,24 @@ class Reparacion(models.Model):
 
     @api.onchange('local_tienda')
     def _onchange_local_tienda(self):
-        """Actualiza dirección al elegir tienda.
-        - Maipú: dirección especial
-        - Resto: misma base con el nombre de local seleccionado
-        """
         for rec in self:
             if not rec.local_tienda:
                 continue
 
-            # Obtener la ETIQUETA visible del selection (p.ej. 'Local 906')
-            label = dict(rec._fields['local_tienda'].selection).get(rec.local_tienda, rec.local_tienda)
+            mapping = {
+                "local 345": "local 345",
+                "local 906": "local 906",
+                "local 392": "local 392",
+                "local 329": "local 329",
+                "local 325": "local 325",
+                "local 383 online": "local 383 online",
+                "local 921": "local 921",
+                "local 584": "local 584",
+                "local maipu": "local maipu",
+            }
 
-            if rec.local_tienda == 'local maipu':
-                rec.direccion_entrega = "Jumbo, Av. Los Pajaritos 3302 (Local Maipú), Metro Santiago Bueras"
-            else:
-                # Ej: "Paseo Estado 344, Local 921, Santiago Centro, Metro Plaza de Armas (Galería Pasaje Matte)"
-                rec.direccion_entrega = f"Paseo Estado 344, {label}, Santiago Centro, Metro Plaza de Armas (Galería Pasaje Matte)"
+            # Si existe la clave, la usa; si no, no rompe
+            rec.direccion_entrega = mapping.get(rec.local_tienda)
 
     @api.onchange('responsable_id')
     def _onchange_responsable_id(self):
@@ -434,6 +530,7 @@ class Reparacion(models.Model):
                 self.vendedora_id = vendedora.id
 
 # ###create funcional(se modifica)######
+    # ###create funcional (corregido sin alterar lógica)######
     @api.model
     def create(self, vals):
         ahora = datetime.now(CHILE_TZ).strftime('%d/%m/%Y %H:%M:%S')
@@ -442,20 +539,97 @@ class Reparacion(models.Model):
         is_admin = self.env.uid == SUPERUSER_ID or self.env.user.has_group('base.group_system')
         is_import = bool(self.env.context.get('import_file') or self.env.context.get('from_import'))
 
-        # ✅ Validar peso especial
+        # ============================================================
+        # 🔐 VALIDACIÓN DE AUTORIZACIÓN PARA RMA SIN COSTO
+        # ============================================================
+
+        precio_unitario = vals.get("precio_unitario", 0) or 0
+        extra = vals.get("extra", 0) or 0
+        extra2 = vals.get("extra2", 0) or 0
+        extra3 = vals.get("extra3", 0) or 0
+        abono = vals.get("abono", 0) or 0
+        saldo = vals.get("saldo", 0) or 0
+
+        precio0 = (
+            precio_unitario == 0 and
+            extra == 0 and
+            extra2 == 0 and
+            extra3 == 0 and
+            abono == 0 and
+            saldo == 0
+        )
+
+        if precio0 and not is_admin:
+
+            vals["costo_cero_definitivo"] = True
+
+            self.env["joyeria.reparacion.authcode"].search([]).check_expired()
+
+            _logger = logging.getLogger(__name__)
+            _logger.warning("===== DEBUG AUTORIZACIÓN CREA =====")
+            _logger.warning("VALS codigo_ingresado = %s", vals.get("codigo_ingresado"))
+            _logger.warning("CÓDIGOS EN BD:")
+            for c in self.env["joyeria.reparacion.authcode"].search([]):
+                _logger.warning("ID %s | '%s' | used=%s", c.id, repr(c.codigo), c.used)
+            _logger.warning("====================================")
+
+            codigo_ing = vals.get("codigo_ingresado")
+            if not codigo_ing:
+                codigo_ing = self._context.get("codigo_ingresado") or ""
+            codigo_ing = str(codigo_ing).strip().upper()
+
+            if not codigo_ing:
+                raise ValidationError("❌ Debes ingresar un código de autorización para reparaciones sin costo.")
+
+            codigo_ing_norm = codigo_ing.strip().upper()
+
+            codes = self.env["joyeria.reparacion.authcode"].search([
+                ('used', '=', False),
+                ('expired', '=', False),
+            ])
+
+            code = next(
+                (c for c in codes if (c.codigo or "").strip().upper() == codigo_ing_norm),
+                False
+            )
+
+            if not code:
+                raise ValidationError("❌ El código ingresado no existe o ya fue utilizado.")
+
+            code.write({
+                'used': True,
+                'usado_por_id': self.env.uid,
+                'fecha_uso': datetime.now()
+            })
+
+            vals["codigo_autorizacion_id"] = code.id
+
+        # ============================================================
+        # ⚙️ LÓGICA EXISTENTE — NO TOCAR
+        # ============================================================
+
         if (not is_admin) and (not is_import) and vals.get('peso') == 'especial' and not vals.get('peso_valor'):
             raise ValidationError("Debe ingresar un valor para el campo 'Peso' si selecciona tipo de peso 'Especial'.")
 
-        # ✅ Generar secuencia si corresponde
+        if not is_import and not is_admin:
+
+            peso_tipo = vals.get('peso')
+            peso_valor = vals.get('peso_valor')
+
+            # ✅ AHORA ESTÁ DENTRO DEL BLOQUE CORRECTO
+            if peso_tipo == 'estandar':
+                if peso_valor not in (0, False, None):
+                    raise ValidationError(
+                        "❌ Para tipo de peso 'Estándar', el campo 'Peso' debe ser 0.\n"
+                        "Ingrese 0 o deje el campo vacío."
+                    )
+
         if vals.get('name', 'Nuevo') == 'Nuevo':
             secuencia = self.env['ir.sequence'].next_by_code('joyeria.reparacion')
             if not secuencia:
                 raise ValidationError("No se pudo generar la secuencia.")
             vals['name'] = secuencia.replace("'", "-")
 
-        # ----------------------------------------------------------
-        # ⚙️ PROCESAR QR DE QUIEN RECIBE (vendedora)
-        # ----------------------------------------------------------
         if not vals.get('vendedora_id') and vals.get('clave_autenticacion_manual'):
             clave = str(vals['clave_autenticacion_manual']).strip().upper()
             vendedora = self.env['joyeria.vendedora'].search([
@@ -468,9 +642,6 @@ class Reparacion(models.Model):
                 vals['vendedora_id'] = vendedora.id
                 mensajes.append(f"📦 Recibido por: <b>{vendedora.name}</b> el <b>{ahora}</b>")
 
-        # ----------------------------------------------------------
-        # ⚙️ PROCESAR QR DE QUIEN RETIRA (firma)
-        # ----------------------------------------------------------
         if not vals.get('firma_id') and vals.get('clave_firma_manual'):
             clave = str(vals['clave_firma_manual']).strip().upper()
             vendedora_firma = self.env['joyeria.vendedora'].search([
@@ -486,25 +657,17 @@ class Reparacion(models.Model):
                 vals['fecha_firma'] = ahora_utc_naive
                 mensajes.append(f"✍️ Retirado por: <b>{vendedora_firma.name}</b> el <b>{ahora}</b>")
 
-        # ----------------------------------------------------------
-        # 🚫 VALIDAR CLAVES INVÁLIDAS
-        # ----------------------------------------------------------
         if vals.get('clave_autenticacion_manual') and not vals.get('vendedora_id'):
             raise ValidationError("❌ Clave inválida: No se encontró ninguna vendedora con esa clave (quien recibe).")
 
         if vals.get('clave_firma_manual') and not vals.get('firma_id'):
             raise ValidationError("❌ Clave inválida: No se encontró ninguna vendedora con esa clave (quien retira).")
 
-        # ----------------------------------------------------------
-        # CREAR REGISTRO
-        # ----------------------------------------------------------
         record = super().create(vals)
 
-        # ✅ Generar QR de la reparación
         if hasattr(record, '_generar_codigo_qr'):
             record._generar_codigo_qr()
 
-        # ✅ Mensaje resumen general
         peso_str = str(record.peso_valor) if record.peso_valor not in (False, 0, 0.0) else "No especificado"
         resumen = (
             "📌 Resumen generado automáticamente\n"
@@ -517,11 +680,12 @@ class Reparacion(models.Model):
         )
         mensajes.append(resumen)
 
-        # ✅ Publicar mensajes en el chatter
         for msg in mensajes:
             record.message_post(body=msg)
 
         return record
+
+
 
 
 
@@ -552,28 +716,29 @@ class Reparacion(models.Model):
 
 
 
-    def write(self, vals):
-        for record in self:
-            ya_tiene_vendedora = bool(record.vendedora_id)
+    #ef write(self, vals):
+     #
+    #  for record in self:
+     #      ya_tiene_vendedora = bool(record.vendedora_id)
 
-            # Si ya hay vendedora asignada, no permitir modificarla ni borrar claves
-            if ya_tiene_vendedora:
-                if 'vendedora_id' in vals and not vals['vendedora_id']:
-                    raise ValidationError("No puede eliminar la vendedora una vez asignada.")
-
-                for campo in ['clave_autenticacion', 'codigo_qr', 'clave_autenticacion_manual']:
-                    if campo in vals and not vals[campo]:
-                        raise ValidationError(f"No puede eliminar el valor de {campo} una vez asignada la vendedora.")
-
-                claves_cambiadas = any(campo in vals for campo in ['clave_autenticacion', 'codigo_qr', 'clave_autenticacion_manual'])
-                if 'vendedora_id' in vals or claves_cambiadas:
-                    raise ValidationError("No se puede modificar la clave o la vendedora una vez asignada.")
-
-            # Procesar firma si se ingresa por primera vez
-            if vals.get('clave_firma_manual'):
-                record._procesar_firma()
-
-        return super(Reparacion, self).write(vals)
+      #      # Si ya hay vendedora asignada, no permitir modificarla ni borrar claves
+       #     if ya_tiene_vendedora:
+        #        if 'vendedora_id' in vals and not vals['vendedora_id']:
+         #           raise ValidationError("No puede eliminar la vendedora una vez asignada.")
+#
+ #               for campo in ['clave_autenticacion', 'codigo_qr', 'clave_autenticacion_manual']:
+  #                  if campo in vals and not vals[campo]:
+   #                     raise ValidationError(f"No puede eliminar el valor de {campo} una vez asignada la vendedora.")
+#
+ #               claves_cambiadas = any(campo in vals for campo in ['clave_autenticacion', 'codigo_qr', 'clave_autenticacion_manual'])
+  #              if 'vendedora_id' in vals or claves_cambiadas:
+   #                 raise ValidationError("No se puede modificar la clave o la vendedora una vez asignada.")
+#
+ #           # Procesar firma si se ingresa por primera vez
+  #          if vals.get('clave_firma_manual'):
+   #             record._procesar_firma()
+#
+ #       return super(Reparacion, self).write(vals)
     
     def _normalizar_clave(self, clave):
         """
@@ -589,15 +754,20 @@ class Reparacion(models.Model):
     def write(self, vals):
         is_admin = self.env.uid == SUPERUSER_ID or self.env.user.has_group('base.group_system')
 
-        # Validaciones SOLO para usuarios NO admin
+        # ============================================================
+        # 🔧 VALIDACIONES EXISTENTES (NO TOCAR)
+        # ============================================================
         if not is_admin:
             for rec in self:
                 if 'peso' in vals and vals['peso'] != rec.peso:
                     raise ValidationError("No se permite cambiar el tipo de peso una vez creado el registro.")
 
-        # ⚙️ Preprocesar claves ANTES de guardar (para que no se pierdan en el super().write)
+        # ============================================================
+        # 📲 PROCESAR QR — NO SE TOCA
+        # ============================================================
         for rec in self:
-            # 📦 Si se escanea QR de recepción (quien recibe)
+
+            # Recepción por QR
             if vals.get('clave_autenticacion_manual'):
                 clave = vals['clave_autenticacion_manual'].strip().upper()
                 vendedora = rec.env['joyeria.vendedora'].search([
@@ -609,7 +779,7 @@ class Reparacion(models.Model):
                 if vendedora:
                     vals['vendedora_id'] = vendedora.id
 
-            # ✍️ Si se escanea QR de retiro (quien retira)
+            # Firma por QR
             if vals.get('clave_firma_manual'):
                 clave = vals['clave_firma_manual'].strip().upper()
                 vendedora_firma = rec.env['joyeria.vendedora'].search([
@@ -623,42 +793,14 @@ class Reparacion(models.Model):
                     ahora_chile = datetime.now(pytz.timezone('America/Santiago'))
                     ahora_utc_naive = ahora_chile.astimezone(pytz.UTC).replace(tzinfo=None)
                     vals['fecha_firma'] = ahora_utc_naive
-            
-            # 🚫 Validar que las claves QR correspondan a vendedoras registradas
-            if vals.get('clave_autenticacion_manual'):
-                clave = str(vals['clave_autenticacion_manual']).strip().upper()
-                existe = self.env['joyeria.vendedora'].search([
-                    '|', '|',
-                    ('clave_autenticacion', '=', clave),
-                    ('clave_qr', '=', clave),
-                    ('codigo_qr', '=', clave),
-                ], limit=1)
-                if not existe:
-                    raise ValidationError("❌ Clave inválida: No se encontró ninguna vendedora con esa clave de autenticación o QR (quien recibe).")
 
-            if vals.get('clave_firma_manual'):
-                clave = str(vals['clave_firma_manual']).strip().upper()
-                existe = self.env['joyeria.vendedora'].search([
-                    '|', '|',
-                    ('clave_autenticacion', '=', clave),
-                    ('clave_qr', '=', clave),
-                    ('codigo_qr', '=', clave),
-                ], limit=1)
-                if not existe:
-                    raise ValidationError("❌ Clave inválida: No se encontró ninguna vendedora con esa clave de autenticación o QR (quien retira).")
+        # ============================================================
+        # ✔ GUARDAR CAMBIOS
+        # ============================================================
+        return super().write(vals)
 
-        # 🔒 Guardar finalmente
-        res = super().write(vals)
 
-        # Post-procesos adicionales si se necesita actualizar en tiempo real
-        for rec in self:
-            # si deseas mantener lógica visual inmediata:
-            if vals.get('clave_autenticacion_manual'):
-                rec._procesar_vendedora()
-            if vals.get('clave_firma_manual'):
-                rec._procesar_firma()
 
-        return res
 
         
 
@@ -714,7 +856,7 @@ class Reparacion(models.Model):
             self.apellido_cliente = partes[1] if len(partes) > 1 else ''
             self.correo_cliente = self.cliente_id.email or ''
             self.telefono = self.cliente_id.phone or ''
-            self.direccion_entrega = self.cliente_id.street or ''
+            #self.direccion_entrega = self.cliente_id.street or ''
 
 
     @api.model

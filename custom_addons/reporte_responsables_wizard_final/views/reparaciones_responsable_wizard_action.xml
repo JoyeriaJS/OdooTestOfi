@@ -1,0 +1,11 @@
+<odoo>
+    <record id="action_wizard_reporte_responsables" model="ir.actions.act_window">
+        <field name="name">Reporte de Reparaciones por Fechas</field>
+        <field name="res_model">reparaciones.responsable.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    <menuitem id="menu_reporte_responsable_wizard"
+              name="Reporte por Fechas"
+              action="action_wizard_reporte_responsables"/>
+</odoo>

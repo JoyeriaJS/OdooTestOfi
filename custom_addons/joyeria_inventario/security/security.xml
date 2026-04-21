@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Grupo de usuarios si lo necesitas -->
+        <!--
+        <record id="group_joyeria_inventario_user" model="res.groups">
+            <field name="name">Usuario Inventario Joyería</field>
+        </record>
+        -->
+
+        <!-- Aquí puedes poner reglas de acceso si defines reglas específicas más adelante -->
+
+    </data>
+</odoo>
