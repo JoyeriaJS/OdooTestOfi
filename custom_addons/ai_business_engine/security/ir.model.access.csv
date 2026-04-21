@@ -1,6 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_ai_engine,ai_engine,model_ai_business_engine,,1,1,1,1
-access_sales_analyzer,sales_analyzer,model_ai_sales_analyzer,,1,0,0,0
-access_vendor_analyzer,vendor_analyzer,model_ai_vendor_analyzer,,1,0,0,0
-access_stock_predictor,stock_predictor,model_ai_stock_predictor,,1,0,0,0
-access_recommendation_engine,recommendation_engine,model_ai_recommendation_engine,,1,0,0,0

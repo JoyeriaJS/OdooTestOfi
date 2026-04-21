@@ -1,8 +1,0 @@
-<odoo>
-    <record id="seq_venta_vendedora" model="ir.sequence">
-        <field name="name">Venta Vendedora</field>
-        <field name="code">venta.vendedora</field>
-        <field name="prefix">VV/</field>
-        <field name="padding">4</field>
-    </record>
-</odoo>

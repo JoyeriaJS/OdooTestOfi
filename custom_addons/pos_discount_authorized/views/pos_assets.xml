@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<odoo>
-    <template id="assets">
-        <xpath expr="." position="inside">
-            <script type="text/javascript" src="/pos_discount_authorized/static/src/js/discount_hook.js"/>
-            <t t-call-assets="pos_discount_authorized.assets" t-js="true"/>
-        </xpath>
-    </template>
-</odoo>

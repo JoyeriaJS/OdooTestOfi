@@ -1,3 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_venta_vendedora,venta.vendedora,model_venta_vendedora,,1,1,1,1
-access_venta_vendedora_line,venta.vendedora.line,model_venta_vendedora_line,,1,1,1,1
